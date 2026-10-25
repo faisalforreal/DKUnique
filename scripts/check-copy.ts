@@ -4,6 +4,16 @@ import path from "path";
 /**
  * Build-time hygiene check: strictly forbids developer jargon, unverified marketing
  * claims, and unconfirmed specs from leaking into visitor-facing UI copy and strings.
+ *
+ * Banned in visitor-visible strings:
+ * Next.js, React, Vercel, Sanity, Render, scalable, architecture, powered by,
+ * built with, placeholder, coming soon, lorem, TODO, pending review, needsReview,
+ * GLB, shader, WebGL, optimized.
+ *
+ * Banned buzzwords:
+ * engineered, premium, cutting-edge, state-of-the-art, commercial-grade, seamless,
+ * captivate, immersive, next-level, revolutionary, unleash, elevate, world-class,
+ * verified, certified, waterproof, pan-india.
  */
 const BANNED_TERMS = [
   "next.js",
@@ -80,18 +90,26 @@ function scanDirectory(dir: string, fileList: string[] = []): string[] {
 }
 
 /**
- * Strips code imports and type annotations so we inspect only strings, JSX text, and template literals.
+ * Strips code-level constructs (imports, React types, CSS className utility prefixes)
+ * so we inspect actual visitor-visible copy, text nodes, and user-facing attributes.
  */
-function extractVisitorVisibleContent(code: string): string {
-  // Remove single line comments and multi-line comments
-  let text = code.replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, "");
-  // Remove import/export statements
+function cleanCodeForInspection(code: string): string {
+  let text = code;
+  // 1. Remove comments
+  text = text.replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, "");
+
+  // 2. Remove import/export statements
   text = text.replace(/import\s+[\s\S]*?from\s+['"][^'"]+['"];?/g, "");
   text = text.replace(/export\s+[\s\S]*?from\s+['"][^'"]+['"];?/g, "");
-  // Remove typescript type annotations like : React.ReactNode or : ReactNode
-  text = text.replace(/:\s*React\.[a-zA-Z0-9_]+/g, "");
-  text = text.replace(/:\s*ReactNode/g, "");
-  text = text.replace(/React\.ReactNode/g, "");
+
+  // 3. Remove React namespace type and framework identifiers in code
+  text = text.replace(/React\.[a-zA-Z0-9_]+/g, "");
+  text = text.replace(/extends\s+React\.[a-zA-Z0-9_]+/g, "");
+  text = text.replace(/displayName\s*=\s*['"][^'"]+['"]/g, "");
+
+  // 4. Remove Tailwind CSS utility prefixes like placeholder:text-muted or focus:
+  text = text.replace(/placeholder:[a-zA-Z0-9_-]+/g, "");
+
   return text;
 }
 
@@ -103,7 +121,7 @@ function checkFiles() {
   for (const file of files) {
     const rawContent = fs.readFileSync(file, "utf-8");
     const relative = path.relative(process.cwd(), file);
-    const content = extractVisitorVisibleContent(rawContent);
+    const content = cleanCodeForInspection(rawContent);
 
     for (const term of BANNED_TERMS) {
       const regex = new RegExp(`(?<![a-zA-Z0-9_-])${term.replace(".", "\\.")}(?![a-zA-Z0-9_-])`, "i");
