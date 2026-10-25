@@ -87,3 +87,30 @@ dk-unique-production@0.1.0 C:\Users\mdfai\Documents\SideProjects\DkUnique
   - "Sizes" / "Scroll to compare fan sizes from 14 cm to 100 cm."
   - "MOQ: ask us" (for models without listed MOQ).
 - **Why:** 100% compliant with approved plan Section 9 and user amendments.
+
+
+### [2026-10-25] Decision 7: Multi-Channel Lead Pipeline Architecture
+- **Context:** B2B buyers have varying connectivity; enquiries must never get dropped.
+- **Decision:** Built `/api/lead` with server-side Zod validation, honeypot anti-spam, 5 req/min in-memory rate limiting, Resend primary dispatch, Nodemailer SMTP secondary dispatch, and development console fallback. Followed immediately by an auto-populated WhatsApp message link for direct follow-up.
+- **Why:** Maximum reliability for buyer lead generation across Indian B2B channels.
+
+### [2026-10-25] Decision 8: Equipment Gallery & Pure Lightbox
+- **Context:** Catalog contains 52+ real product photographs from warehouse and installations.
+- **Decision:** Created `/gallery` with category filter tabs and an accessible, full-screen lightbox modal displaying high-res photos and direct links to product spec sheets.
+- **Why:** Visual proof for buyers without bloating bundle size with heavy carousel/gallery libraries.
+
+### [2026-10-25] Decision 9: Comprehensive Search & Technical SEO Architecture
+- **Context:** Dynamic catalog pages and demos must be discoverable, while internal API and Studio paths must remain unindexed.
+- **Decision:** Implemented dynamic `robots.ts` (controlled by `NEXT_PUBLIC_ALLOW_INDEXING`), `sitemap.ts` (mapping static routes, all 6 categories, and all 52 products), and Schema.org JSON-LD structured data (`Organization`, `Product`, `VideoObject`).
+- **Why:** Complete enterprise SEO compliance without third-party SEO plugins.
+
+### [2026-10-25] Decision 10: Sanity CMS v3 Baseline with Studio Route Decoupling
+- **Context:** Next.js 15.5.28 with React 19.3.1 requires exact version alignment for Sanity CMS without resorting to `--legacy-peer-deps` or `--force`.
+- **Decision:**
+  - Pinned `next-sanity@9.8.59`, `sanity@3.76.1`, and `styled-components@6.1.15`.
+  - Verified peer dependencies: `next: '^14.2 || ^15.0.0-0'`, `react: '^18.3 || ^19.0.0-0'`.
+  - Decoupled `@sanity/client` from Sanity Studio internals using `src/sanity/env.ts` and pure client fetch in `src/sanity/client.ts`.
+  - Wrapped `NextStudio` in client component (`StudioClient.tsx`) mounted at `/studio/[[...tool]]`.
+  - Added graceful fallback to local seed data in `src/lib/data/*` so the site runs completely standalone if Sanity project keys are unset.
+  - Authored `scripts/seed-sanity.ts` for one-command content synchronization.
+- **Why:** Full compatibility, zero build-time leaks into server routes (e.g. `sitemap.xml`), and zero runtime dependency on external CMS uptime.

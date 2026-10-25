@@ -114,3 +114,59 @@ DkUnique/
    }
    ```
 4. `<ProductViewer>` will automatically mount the 3D model with scroll rotation and drag controls; when no model is present, it cleanly displays the high-resolution photo gallery.
+
+
+## 5. CMS Architecture & Content Synchronization
+
+The website is engineered with a **zero-downtime hybrid data architecture**:
+1. **Local Seed Default:** The site builds and runs out-of-the-box using the local datasets in `src/data/`.
+2. **Sanity Overlay:** If `NEXT_PUBLIC_SANITY_PROJECT_ID` is defined, `src/lib/data/*` seamlessly routes queries to Sanity. If queries fail or return empty datasets, it gracefully falls back to local data.
+3. **Studio Route:** Sanity Studio is mounted at `/studio` (`/studio/[[...tool]]`) as a dynamic client route with `noindex` headers.
+4. **Content Seeding:**
+   To synchronize local products, services, categories, and videos to a live Sanity project, set:
+   ```env
+   NEXT_PUBLIC_SANITY_PROJECT_ID=your_project_id
+   NEXT_PUBLIC_SANITY_DATASET=production
+   SANITY_API_WRITE_TOKEN=your_sanity_write_token
+   ```
+   Then execute:
+   ```bash
+   npm run seed:sanity
+   ```
+
+## 6. Lead Pipeline Architecture
+
+Visitor enquiries are processed via `src/app/api/lead/route.ts`:
+- **Validation:** Strict server-side Zod validation (`src/server/lead-schema.ts`) supporting 5 lead types (`quote`, `callback`, `rental`, `demo`, `contact`).
+- **Anti-Spam:** Honeypot field inspection rejects automated bot submissions without user impact.
+- **Rate Limiting:** Sliding-window in-memory rate limiter (`src/server/rate-limit.ts`) limits requests to 5 per minute per IP.
+- **Dispatch:**
+  1. Primary: Resend API (`RESEND_API_KEY`).
+  2. Secondary: SMTP transport via Nodemailer (`SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`).
+  3. Development: Safe console output fallback when email keys are not provided.
+- **Buyer Direct Hand-off:** Every successful submission returns a pre-populated WhatsApp intent URL allowing buyers to initiate direct conversation on `+91 79485 48724` with one tap.
+
+## 7. Build, Verification & Deployment Commands
+
+### Verification Suite
+Execute the full quality verification gate with:
+```bash
+npm run verify
+```
+This runs in sequence:
+- `npm run typecheck` (`tsc --noEmit`)
+- `npm run lint` (`eslint src`)
+- `npm run copy:check` (validates no banned words or developer jargon in visitor strings)
+- `npm run claims:check` (ensures all numerical claims align with verified data)
+- `npm run build` (`next build` with static prerendering)
+
+### Production Deployment
+- **Platform:** Vercel, Node server, or containerized hosting.
+- **Build Command:** `npm run build`
+- **Output:** Next.js standalone App Router build.
+- **Environment Flags:**
+  - `NEXT_PUBLIC_SITE_URL`: Domain URL (e.g. `https://dkunique.com`)
+  - `NEXT_PUBLIC_ALLOW_INDEXING`: Set to `true` on production domain to enable search engine indexing; defaults to `false` for prototype previews.
+  - `NEXT_PUBLIC_PHONE`: Contact phone number.
+  - `NEXT_PUBLIC_WHATSAPP`: Contact WhatsApp number.
+  - `RESEND_API_KEY`: API key for email delivery.
