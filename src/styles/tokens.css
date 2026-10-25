@@ -1,0 +1,17 @@
+@theme {
+  --color-paper: #F3F1EC;
+  --color-ink: #111111;
+  --color-line: #D8D4CA;
+  --color-muted: #5F5B53;
+  --color-stage: #0A0C10;
+  --color-signal: #2BD9E6;
+
+  --font-display: var(--font-archivo), sans-serif;
+  --font-body: var(--font-public-sans), sans-serif;
+  --font-mono: var(--font-ibm-plex-mono), monospace;
+
+  --radius-xs: 2px;
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 4px;
+}
