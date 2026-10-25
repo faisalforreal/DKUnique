@@ -1,11 +1,37 @@
 import { categories } from "@/data/categories";
 import type { Category } from "@/types";
+import { isSanityConfigured, sanityClient } from "@/sanity/client";
 
 export async function getCategories(): Promise<Category[]> {
+  if (isSanityConfigured) {
+    try {
+      const result = await sanityClient.fetch<Category[]>(
+        `*[_type == "category"] | order(order asc)`
+      );
+      if (result && result.length > 0) {
+        return result;
+      }
+    } catch {
+      // Fallback
+    }
+  }
   return [...categories].sort((a, b) => a.sortOrder - b.sortOrder);
 }
 
 export async function getCategoryBySlug(slug: string): Promise<Category | null> {
+  if (isSanityConfigured) {
+    try {
+      const result = await sanityClient.fetch<Category>(
+        `*[_type == "category" && slug.current == $slug][0]`,
+        { slug }
+      );
+      if (result) {
+        return result;
+      }
+    } catch {
+      // Fallback
+    }
+  }
   const cat = categories.find((c) => c.slug === slug);
   return cat || null;
 }
