@@ -7,6 +7,7 @@ import { siteConfig } from "@/config/site";
 import { motionConfig } from "@/config/motion";
 import { Button } from "@/components/ui/Button";
 import { HeroFanModel } from "@/components/three/HeroFanModel";
+import { ViewCameraSetup } from "@/components/three/ViewCameraSetup";
 
 interface HeroSectionProps {
   onOpenQuoteModal: () => void;
@@ -90,12 +91,14 @@ export function HeroSection({ onOpenQuoteModal }: HeroSectionProps) {
           </div>
 
           {/* Right Column: Single Responsive 3D Fan Stage */}
-          <div className="lg:col-span-5 w-full h-[320px] sm:h-[380px] lg:h-[480px] xl:h-[560px] relative order-1 lg:order-2 flex items-center justify-center">
+          <div className="lg:col-span-5 w-full h-[340px] sm:h-[420px] lg:h-[500px] xl:h-[580px] relative order-1 lg:order-2 flex items-center justify-center">
             <View className="w-full h-full">
-              <ambientLight intensity={0.9} />
-              <directionalLight position={[3, 4, 5]} intensity={1.5} />
-              <directionalLight position={[-3, 2, 2]} intensity={1.0} color="#2BD9E6" />
-              <HeroFanModel mode="hero" tiltOffset={tilt} scale={1.1} />
+              <ViewCameraSetup />
+              <ambientLight intensity={1.5} />
+              <directionalLight position={[4, 5, 5]} intensity={2.2} />
+              <directionalLight position={[-4, -2, -3]} intensity={1.2} />
+              <directionalLight position={[-3, 2, 3]} intensity={1.6} color="#2BD9E6" />
+              <HeroFanModel mode="hero" tiltOffset={tilt} scale={1.25} />
             </View>
           </div>
         </div>

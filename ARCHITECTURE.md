@@ -170,3 +170,22 @@ This runs in sequence:
   - `NEXT_PUBLIC_PHONE`: Contact phone number.
   - `NEXT_PUBLIC_WHATSAPP`: Contact WhatsApp number.
   - `RESEND_API_KEY`: API key for email delivery.
+
+## 8. 3D Stage & Motion Pipeline
+
+- **Single Canvas (`<CanvasManager>`):** Renders one fixed full-viewport Three.js WebGL canvas (`position: fixed, inset: 0, zIndex: 15, pointerEvents: none`). Drei `<View>` portals track the individual DOM stages (`HeroSection`, `HowItWorksSection`, `SizesSection`), ensuring a single WebGL context and zero canvas remounting.
+- **Hero Fan Model (`public/assets/models/hero-fan.glb`):**
+  - High-performance, lightweight GLB asset (347 KB).
+  - Node hierarchy: `Rotor_Hub` (with child blades `Blade_01..04`, LED dot strips `LED_Dots_01..04`, and hub cap) and stationary `Motor_Base` (motor housing, neck, wall mounting plate, and screws).
+  - Rotated exclusively about the Z axis via code in `useFrame` (no baked keyframe animations).
+  - LED material: `MeshStandardMaterial` named `"LED"`, emissive throttled dynamically via scroll progress.
+  - Procedural fallback: When `hero-fan.glb` is missing, renders an identical node hierarchy procedurally with 4 blades and 96 discrete LED dots.
+- **Three-Quarter Camera Angle (`<ViewCameraSetup>`):**
+  - Configured in `src/config/motion.ts` (`position: [1.02, 0.62, 1.76]`, `target: [0, 0, -0.04]`, `fov: 42`).
+  - Sets perspective 30° off normal and 18° above horizontal, clearly displaying the motor housing and wall plate behind the spinning blades.
+- **Hologram Video Plane (`<HologramVideoPlane>`):**
+  - Sized to 80% of blade diameter (0.52m), facing +Z.
+  - Additive blending (`THREE.AdditiveBlending`) rendering black video backgrounds transparent.
+  - Configured in `src/config/motion.ts` (`mode: "in-plane"` or `"above"`, `riseDistance: 0.06m`, `fadeStartProgress: 0.7`).
+  - Video plays only while the section is in view; falls back seamlessly to procedural POV wireframe when `/assets/demo/holo-loop.mp4` is absent.
+

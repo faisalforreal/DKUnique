@@ -6,6 +6,7 @@ import { useScroll, useMotionValueEvent } from "motion/react";
 import { copy } from "@/content/copy";
 import { motionConfig } from "@/config/motion";
 import { HeroFanModel } from "@/components/three/HeroFanModel";
+import { ViewCameraSetup } from "@/components/three/ViewCameraSetup";
 
 export function HowItWorksSection() {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -63,13 +64,15 @@ export function HowItWorksSection() {
         {/* Center 3D Stage (Tracks R3F View) */}
         <div className="relative flex-1 w-full max-w-[800px] mx-auto flex items-center justify-center z-10">
           <View className="w-full h-full min-h-[300px]">
-            <ambientLight intensity={0.9} />
-            <directionalLight position={[3, 4, 5]} intensity={1.5} />
-            <directionalLight position={[-3, 2, 2]} intensity={1.0} color="#2BD9E6" />
+            <ViewCameraSetup />
+            <ambientLight intensity={1.5} />
+            <directionalLight position={[4, 5, 5]} intensity={2.2} />
+            <directionalLight position={[-4, -2, -3]} intensity={1.2} />
+            <directionalLight position={[-3, 2, 3]} intensity={1.6} color="#2BD9E6" />
             <HeroFanModel
               mode="how-it-works"
               progressRef={progressRef}
-              scale={1.05}
+              scale={1.2}
             />
           </View>
         </div>

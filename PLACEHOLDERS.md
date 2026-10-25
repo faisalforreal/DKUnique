@@ -60,3 +60,13 @@ The following items exist in the catalog with null prices and no specifications:
 - Boxing Arcade Game Machine
 
 *These are excluded from the homepage and listed only under "More products".*
+
+---
+
+## 3. Media & 3D Assets
+| Item | Status / Fallback | Action Required |
+|---|---|---|
+| **Hologram Video Loop** (`/assets/demo/holo-loop.mp4` & `.webm`) | Currently absent; falls back to procedural persistence-of-vision wireframe hologram | Drop in video loop (< 3 MB, H.264 mp4 / VP9 webm, muted, pure black background for additive blending). |
+| **Hologram Static Poster** (`/assets/demo/holo-poster.webp`) | Absent; procedural wireframe renders immediately | Optional webp poster image for video preloading state. |
+| **Hero 3D Fan Model** (`/assets/models/hero-fan.glb`) | **Installed** (347 KB, nodes `Rotor_Hub`, `Blade_01..04`, `Motor_Base`, material `LED`) | Fully functional and code-rotated in three-quarter view. |
+

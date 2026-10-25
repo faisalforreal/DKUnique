@@ -114,3 +114,14 @@ dk-unique-production@0.1.0 C:\Users\mdfai\Documents\SideProjects\DkUnique
   - Added graceful fallback to local seed data in `src/lib/data/*` so the site runs completely standalone if Sanity project keys are unset.
   - Authored `scripts/seed-sanity.ts` for one-command content synchronization.
 - **Why:** Full compatibility, zero build-time leaks into server routes (e.g. `sitemap.xml`), and zero runtime dependency on external CMS uptime.
+
+### [2026-10-25] Decision 11: Hero Scene Model Override, Three-Quarter Camera & Hologram Video Plane
+- **Context:** User provided real 3D model `hero-fan.glb` (347 KB) to replace the procedural fan in the hero and scroll stages, requested a realistic three-quarter camera perspective showing the motor housing and wall plate, and a floating hologram video plane with procedural fallback.
+- **Decision:**
+  - Placed model at `public/assets/models/hero-fan.glb`. Verified node hierarchy (`Rotor_Hub` containing `Blade_01..04`, `Motor_Base` containing `Motor_Housing` and `Wall_Plate`, material `"LED"`).
+  - Implemented singleton fetch/parse cache with per-view deep cloning (`.clone(true)`) and material cloning, preventing Three.js scene-stealing across views.
+  - Scripted `Rotor_Hub` rotation purely via code in `useFrame`, throttling material `"LED"` emissive intensity based on scroll progress.
+  - Configured three-quarter perspective camera in `src/config/motion.ts` (`angleDegrees: 30`, `elevationDegrees: 18`, `distance: 2.15m`, `position: [1.02, 0.62, 1.76]`, `target: [0, 0, -0.04]`, `fov: 42`). Enforced across Drei Views via `<ViewCameraSetup />`.
+  - Created `<HologramVideoPlane />` sized to 80% blade diameter ($0.52\text{m}$), using `VideoTexture` with `THREE.AdditiveBlending`, hidden initially, fading in and rising past scroll progress 0.7. Falls back cleanly to procedural hologram when `/assets/demo/holo-loop.mp4` is absent.
+- **Why:** Delivers an honest, industrial 3D perspective showcasing actual product hardware without top-down flattening or vibe-coded neon clutter.
+
