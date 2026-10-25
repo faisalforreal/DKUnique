@@ -1,10 +1,20 @@
-import { copy } from "@/content/copy";
+import { getCategories, getPopularFans, getFanSizes } from "@/lib/data";
+import { HomeClient } from "./HomeClient";
 
-export default function HomePage() {
+export const revalidate = 3600; // 1 hour ISR
+
+export default async function HomePage() {
+  const [categories, popularFans, fanSizes] = await Promise.all([
+    getCategories(),
+    getPopularFans(),
+    getFanSizes(),
+  ]);
+
   return (
-    <main className="p-8">
-      <h1 className="font-display text-4xl mb-4">{copy.hero.h1}</h1>
-      <p className="font-body text-muted">{copy.hero.body}</p>
-    </main>
+    <HomeClient
+      categories={categories}
+      popularFans={popularFans}
+      fanSizes={fanSizes}
+    />
   );
 }

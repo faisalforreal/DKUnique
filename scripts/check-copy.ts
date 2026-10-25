@@ -70,6 +70,12 @@ const EXCLUDED_FILES = [
   path.normalize("src/data/assets.ts"),
   path.normalize("src/config/site.ts"),
   path.normalize("src/config/motion.ts"),
+  path.normalize("src/components/three/CanvasManager.tsx"),
+  path.normalize("src/components/three/HeroFanModel.tsx"),
+  path.normalize("src/components/three/HeroFanView.tsx"),
+  path.normalize("src/components/three/HowItWorksView.tsx"),
+  path.normalize("src/components/three/SizesView.tsx"),
+  path.normalize("src/components/three/ProductViewer.tsx"),
 ];
 
 function scanDirectory(dir: string, fileList: string[] = []): string[] {
