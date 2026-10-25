@@ -115,6 +115,8 @@ function cleanCodeForInspection(code: string): string {
 
   // 4. Remove Tailwind CSS utility prefixes like placeholder:text-muted or focus:
   text = text.replace(/placeholder:[a-zA-Z0-9_-]+/g, "");
+  // 5. Remove HTML/JSX attribute name `placeholder=` (the attribute value remains for checking)
+  text = text.replace(/\bplaceholder\s*=/g, "");
 
   return text;
 }
