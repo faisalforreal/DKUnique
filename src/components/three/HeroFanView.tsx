@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { View, Environment, Lightformer } from "@react-three/drei";
+import { View } from "@react-three/drei";
 import { HeroFanModel } from "./HeroFanModel";
 import { motionConfig } from "@/config/motion";
 
@@ -26,38 +26,14 @@ export function HeroFanView({ trackRef }: HeroFanViewProps) {
 
   return (
     <View track={trackRef as React.MutableRefObject<HTMLElement>}>
-      {/* Studio Lighting via Lightformer (no remote HDR / CDN presets) */}
-      <Environment>
-        <Lightformer
-          intensity={1.2}
-          position={[0, 4, 3]}
-          scale={[10, 5, 1]}
-          color="#ffffff"
-        />
-        <Lightformer
-          intensity={0.8}
-          position={[-3, 0, 2]}
-          scale={[4, 8, 1]}
-          color="#2BD9E6"
-        />
-        <Lightformer
-          intensity={0.5}
-          position={[3, -2, 2]}
-          scale={[4, 4, 1]}
-          color="#5F5B53"
-        />
-      </Environment>
-
-      <ambientLight intensity={0.4} />
-      <directionalLight position={[2, 3, 4]} intensity={0.8} />
+      <ambientLight intensity={0.6} />
+      <directionalLight position={[3, 4, 5]} intensity={1.2} />
+      <directionalLight position={[-3, -2, -2]} intensity={0.5} />
 
       <HeroFanModel
-        spinSpeed={motionConfig.hero.idleSpinSpeed}
-        bladeOpacity={0.9}
-        ledOpacity={1.0}
-        hologramOpacity={1.0}
-        scale={1.05}
+        mode="hero"
         tiltOffset={tilt}
+        scale={1.1}
       />
     </View>
   );

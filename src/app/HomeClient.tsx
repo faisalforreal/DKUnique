@@ -1,12 +1,9 @@
 "use client";
 
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import type { Category, Product } from "@/types";
 import type { FanSizeEntry } from "@/lib/data/products";
 import { CanvasManager } from "@/components/three/CanvasManager";
-import { HeroFanView } from "@/components/three/HeroFanView";
-import { HowItWorksView } from "@/components/three/HowItWorksView";
-import { SizesView } from "@/components/three/SizesView";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { MobileBottomBar } from "@/components/layout/MobileBottomBar";
@@ -32,15 +29,6 @@ export function HomeClient({
   popularFans,
   fanSizes,
 }: HomeClientProps) {
-  // DOM Tracking Refs for the Single R3F Canvas
-  const heroTrackRef = useRef<HTMLDivElement>(null);
-  const howItWorksTrackRef = useRef<HTMLDivElement>(null);
-  const sizesTrackRef = useRef<HTMLDivElement>(null);
-
-  // Scroll Progress Refs
-  const howItWorksProgressRef = useRef<number>(0);
-  const sizesProgressRef = useRef<number>(0);
-
   // Quote Modal State
   const [quoteModalOpen, setQuoteModalOpen] = useState(false);
   const [quoteProductName, setQuoteProductName] = useState<string | undefined>();
@@ -52,38 +40,19 @@ export function HomeClient({
 
   return (
     <CanvasManager>
-      {/* 3D Scene Views rendered inside the single Canvas via Drei View */}
-      <HeroFanView trackRef={heroTrackRef} />
-      <HowItWorksView
-        trackRef={howItWorksTrackRef}
-        progressRef={howItWorksProgressRef}
-      />
-      <SizesView
-        trackRef={sizesTrackRef}
-        progressRef={sizesProgressRef}
-      />
-
       {/* Main UI Layout */}
-      <div className="relative z-10 flex min-h-screen flex-col bg-paper">
+      <div className="relative flex min-h-screen flex-col bg-paper">
         <Navbar onOpenQuoteModal={() => handleOpenQuote()} />
 
         <main className="flex-1">
           {/* Hero Section */}
-          <HeroSection
-            trackRef={heroTrackRef}
-            onOpenQuoteModal={() => handleOpenQuote()}
-          />
+          <HeroSection onOpenQuoteModal={() => handleOpenQuote()} />
 
           {/* How It Works Scroll Storytelling */}
-          <HowItWorksSection
-            trackRef={howItWorksTrackRef}
-            progressRef={howItWorksProgressRef}
-          />
+          <HowItWorksSection />
 
           {/* Sizes Scale Sequence */}
           <SizesSection
-            trackRef={sizesTrackRef}
-            progressRef={sizesProgressRef}
             models={fanSizes}
             onSelectModelQuote={(name) => handleOpenQuote(name)}
           />
@@ -100,7 +69,7 @@ export function HomeClient({
           {/* 03 See Them Running */}
           <DemoVideosSection />
 
-          {/* 04 Rental */}
+          {/* 04 Need One for an Event? */}
           <RentalSection />
 
           {/* 05 Find Us */}
@@ -111,11 +80,8 @@ export function HomeClient({
         </main>
 
         <Footer />
-
-        {/* Mobile Sticky Action Bar */}
         <MobileBottomBar onOpenQuoteModal={() => handleOpenQuote()} />
 
-        {/* Lead Quote Modal */}
         <QuoteModal
           open={quoteModalOpen}
           onOpenChange={setQuoteModalOpen}

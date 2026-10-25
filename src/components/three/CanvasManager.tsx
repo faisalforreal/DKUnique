@@ -13,16 +13,17 @@ export function CanvasManager({ children }: CanvasManagerProps) {
   const [dpr, setDpr] = useState(1.5);
   const [hasWebGL, setHasWebGL] = useState(true);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
+  const [eventSource, setEventSource] = useState<HTMLElement | undefined>(undefined);
 
   useEffect(() => {
-    // Check for reduced motion preference
     if (typeof window !== "undefined") {
+      setEventSource(document.body);
+
       const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
       setPrefersReducedMotion(mediaQuery.matches);
       const listener = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches);
       mediaQuery.addEventListener("change", listener);
 
-      // Check for basic WebGL support
       try {
         const canvas = document.createElement("canvas");
         const gl = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
@@ -43,8 +44,16 @@ export function CanvasManager({ children }: CanvasManagerProps) {
     <div ref={containerRef} className="relative w-full">
       {/* The ONE fixed R3F canvas covering the whole viewport */}
       <Canvas
-        className="pointer-events-none fixed inset-0 z-0 h-screen w-screen"
-        eventSource={containerRef}
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100vw",
+          height: "100vh",
+          pointerEvents: "none",
+          zIndex: 15,
+        }}
+        eventSource={eventSource}
         dpr={dpr}
         gl={{
           antialias: true,

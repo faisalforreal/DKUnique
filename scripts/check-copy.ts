@@ -76,6 +76,18 @@ const EXCLUDED_FILES = [
   path.normalize("src/components/three/HowItWorksView.tsx"),
   path.normalize("src/components/three/SizesView.tsx"),
   path.normalize("src/components/three/ProductViewer.tsx"),
+  path.normalize("src/sanity/client.ts"),
+  path.normalize("src/sanity/config.ts"),
+  path.normalize("src/sanity/env.ts"),
+  path.normalize("src/sanity/schemaTypes/category.ts"),
+  path.normalize("src/sanity/schemaTypes/product.ts"),
+  path.normalize("src/sanity/schemaTypes/service.ts"),
+  path.normalize("src/sanity/schemaTypes/demoVideo.ts"),
+  path.normalize("src/sanity/schemaTypes/galleryItem.ts"),
+  path.normalize("src/sanity/schemaTypes/siteSettings.ts"),
+  path.normalize("src/sanity/schemaTypes/index.ts"),
+  path.normalize("src/app/studio/[[...tool]]/StudioClient.tsx"),
+  path.normalize("src/app/studio/[[...tool]]/page.tsx"),
 ];
 
 function scanDirectory(dir: string, fileList: string[] = []): string[] {

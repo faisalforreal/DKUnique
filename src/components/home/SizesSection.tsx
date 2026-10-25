@@ -1,26 +1,25 @@
 "use client";
 
 import React, { useRef, useState } from "react";
+import { View } from "@react-three/drei";
 import { useScroll, useMotionValueEvent } from "motion/react";
 import type { FanSizeEntry } from "@/lib/data/products";
 import { copy } from "@/content/copy";
 import { formatInr } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
+import { HeroFanModel } from "@/components/three/HeroFanModel";
 
 interface SizesSectionProps {
-  trackRef: React.RefObject<HTMLDivElement | null>;
-  progressRef: React.MutableRefObject<number>;
   models: FanSizeEntry[];
   onSelectModelQuote: (modelName: string) => void;
 }
 
 export function SizesSection({
-  trackRef,
-  progressRef,
   models,
   onSelectModelQuote,
 }: SizesSectionProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const progressRef = useRef<number>(0);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   const { scrollYProgress } = useScroll({
@@ -30,7 +29,6 @@ export function SizesSection({
 
   useMotionValueEvent(scrollYProgress, "change", (latest) => {
     progressRef.current = latest;
-    // Map progress to nearest real model index
     const total = models.length;
     if (total > 0) {
       const idx = Math.min(total - 1, Math.floor(latest * total));
@@ -42,6 +40,7 @@ export function SizesSection({
 
   return (
     <section
+      id="sizes"
       ref={containerRef}
       className="relative w-full h-[200vh] md:h-[240vh] bg-stage text-paper border-b border-line/20"
     >
@@ -64,7 +63,15 @@ export function SizesSection({
 
         {/* Center 3D Stage (Tracks R3F View) */}
         <div className="relative flex-1 w-full max-w-[800px] mx-auto flex items-center justify-center z-10">
-          <div ref={trackRef} className="w-full h-full min-h-[300px]" />
+          <View className="w-full h-full min-h-[300px]">
+            <ambientLight intensity={0.9} />
+            <directionalLight position={[3, 4, 5]} intensity={1.5} />
+            <directionalLight position={[-3, 2, 2]} intensity={1.0} color="#2BD9E6" />
+            <HeroFanModel
+              mode="sizes"
+              progressRef={progressRef}
+            />
+          </View>
         </div>
 
         {/* Bottom Real-time Datasheet Strip (Generated from Data Layer) */}
@@ -105,22 +112,22 @@ export function SizesSection({
                   <span className="font-mono text-xs text-paper/50 block">
                     {copy.sizes.priceLabel}
                   </span>
-                  <span className="font-mono text-sm sm:text-base text-signal font-semibold">
-                    {formatInr(activeModel.priceApprox)}
+                  <span className="font-mono text-sm sm:text-base text-paper font-semibold">
+                    {activeModel.priceApprox !== null
+                      ? formatInr(activeModel.priceApprox)
+                      : "Ask us"}
                   </span>
                 </div>
               </div>
 
-              <div className="w-full md:w-auto">
-                <Button
-                  variant="stagePrimary"
-                  size="md"
-                  onClick={() => onSelectModelQuote(activeModel.name)}
-                  className="w-full md:w-auto px-6 whitespace-nowrap"
-                >
-                  {copy.popularFans.columns.action}
-                </Button>
-              </div>
+              <Button
+                variant="stagePrimary"
+                size="sm"
+                onClick={() => onSelectModelQuote(activeModel.name)}
+                className="w-full md:w-auto"
+              >
+                {copy.popularFans.columns.action}
+              </Button>
             </div>
           )}
         </div>

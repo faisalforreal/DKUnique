@@ -1,18 +1,14 @@
 import { products } from "@/data/products";
 import type { Product } from "@/types";
-import { isSanityConfigured, sanityClient } from "@/sanity/client";
+import { isSanityConfigured, fetchFromSanity } from "@/sanity/client";
 
 export async function getProducts(): Promise<Product[]> {
   if (isSanityConfigured) {
-    try {
-      const result = await sanityClient.fetch<Product[]>(
-        `*[_type == "product" && (!defined(visible) || visible == true)]`
-      );
-      if (result && result.length > 0) {
-        return result;
-      }
-    } catch {
-      // Graceful fallback to local seed data
+    const result = await fetchFromSanity<Product[]>(
+      `*[_type == "product" && (!defined(visible) || visible == true)]`
+    );
+    if (result && result.length > 0) {
+      return result;
     }
   }
   return products.filter((p) => p.visible);
@@ -20,13 +16,9 @@ export async function getProducts(): Promise<Product[]> {
 
 export async function getAllProductsRaw(): Promise<Product[]> {
   if (isSanityConfigured) {
-    try {
-      const result = await sanityClient.fetch<Product[]>(`*[_type == "product"]`);
-      if (result && result.length > 0) {
-        return result;
-      }
-    } catch {
-      // Fallback
+    const result = await fetchFromSanity<Product[]>(`*[_type == "product"]`);
+    if (result && result.length > 0) {
+      return result;
     }
   }
   return products;
@@ -34,16 +26,12 @@ export async function getAllProductsRaw(): Promise<Product[]> {
 
 export async function getProductBySlug(slug: string): Promise<Product | null> {
   if (isSanityConfigured) {
-    try {
-      const result = await sanityClient.fetch<Product>(
-        `*[_type == "product" && slug.current == $slug && (!defined(visible) || visible == true)][0]`,
-        { slug }
-      );
-      if (result) {
-        return result;
-      }
-    } catch {
-      // Fallback
+    const result = await fetchFromSanity<Product>(
+      `*[_type == "product" && slug.current == $slug && (!defined(visible) || visible == true)][0]`,
+      { slug }
+    );
+    if (result) {
+      return result;
     }
   }
   const product = products.find((p) => p.slug === slug && p.visible);
@@ -52,16 +40,12 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
 
 export async function getProductsByCategory(categorySlug: string): Promise<Product[]> {
   if (isSanityConfigured) {
-    try {
-      const result = await sanityClient.fetch<Product[]>(
-        `*[_type == "product" && categorySlug == $categorySlug && (!defined(visible) || visible == true)]`,
-        { categorySlug }
-      );
-      if (result && result.length > 0) {
-        return result;
-      }
-    } catch {
-      // Fallback
+    const result = await fetchFromSanity<Product[]>(
+      `*[_type == "product" && categorySlug == $categorySlug && (!defined(visible) || visible == true)]`,
+      { categorySlug }
+    );
+    if (result && result.length > 0) {
+      return result;
     }
   }
   return products.filter((p) => p.categorySlug === categorySlug && p.visible);

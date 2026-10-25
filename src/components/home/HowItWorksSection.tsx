@@ -1,20 +1,15 @@
 "use client";
 
 import React, { useRef, useState } from "react";
+import { View } from "@react-three/drei";
 import { useScroll, useMotionValueEvent } from "motion/react";
 import { copy } from "@/content/copy";
 import { motionConfig } from "@/config/motion";
+import { HeroFanModel } from "@/components/three/HeroFanModel";
 
-interface HowItWorksSectionProps {
-  trackRef: React.RefObject<HTMLDivElement | null>;
-  progressRef: React.MutableRefObject<number>;
-}
-
-export function HowItWorksSection({
-  trackRef,
-  progressRef,
-}: HowItWorksSectionProps) {
+export function HowItWorksSection() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const progressRef = useRef<number>(0);
   const [activeStep, setActiveStep] = useState(1);
 
   const { scrollYProgress } = useScroll({
@@ -43,6 +38,7 @@ export function HowItWorksSection({
 
   return (
     <section
+      id="how-it-works"
       ref={containerRef}
       className="relative w-full h-[220vh] md:h-[260vh] bg-stage text-paper border-b border-line/20"
     >
@@ -66,7 +62,16 @@ export function HowItWorksSection({
 
         {/* Center 3D Stage (Tracks R3F View) */}
         <div className="relative flex-1 w-full max-w-[800px] mx-auto flex items-center justify-center z-10">
-          <div ref={trackRef} className="w-full h-full min-h-[300px]" />
+          <View className="w-full h-full min-h-[300px]">
+            <ambientLight intensity={0.9} />
+            <directionalLight position={[3, 4, 5]} intensity={1.5} />
+            <directionalLight position={[-3, 2, 2]} intensity={1.0} color="#2BD9E6" />
+            <HeroFanModel
+              mode="how-it-works"
+              progressRef={progressRef}
+              scale={1.05}
+            />
+          </View>
         </div>
 
         {/* Bottom Step Text Carousel / Indicators */}
