@@ -2,6 +2,7 @@
 
 import React from "react";
 import { View } from "@react-three/drei";
+import { motionConfig } from "@/config/motion";
 import { HeroFanModel } from "./HeroFanModel";
 
 interface HowItWorksViewProps {
@@ -19,7 +20,7 @@ export function HowItWorksView({ trackRef, progressRef }: HowItWorksViewProps) {
       <HeroFanModel
         mode="how-it-works"
         progressRef={progressRef}
-        scale={1.05}
+        scale={motionConfig.models.howItWorks.fanScale}
       />
     </View>
   );

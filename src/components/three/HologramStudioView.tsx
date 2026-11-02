@@ -6,6 +6,7 @@ import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { HologramModel } from "./HologramModel";
 import { HeroFanModel } from "./HeroFanModel";
 import { ViewCameraSetup } from "./ViewCameraSetup";
+import { motionConfig } from "@/config/motion";
 
 interface HologramStudioViewProps {
   trackRef: React.RefObject<HTMLDivElement | null>;
@@ -55,13 +56,17 @@ export function HologramStudioView({
       {/* Fan Assembly if toggled on */}
       {showFan && (
         <group position={[0, 0, 0]}>
-          <HeroFanModel mode="how-it-works" scale={1.1} />
+          <HeroFanModel mode="how-it-works" scale={motionConfig.models.studio.fanScale} />
         </group>
       )}
 
       {/* Floating 3D Hologram Model with clear Z depth separation */}
       <HologramModel
-        scale={showFan ? 0.26 : 0.44}
+        scale={
+          showFan
+            ? motionConfig.models.studio.hologramScaleWithFan
+            : motionConfig.models.studio.hologramScaleSolo
+        }
         position={[0, showFan ? 0 : -0.05, showFan ? 0.25 : 0]}
       />
     </View>

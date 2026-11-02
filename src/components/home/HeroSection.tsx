@@ -5,6 +5,7 @@ import { View } from "@react-three/drei";
 import { copy } from "@/content/copy";
 import { siteConfig } from "@/config/site";
 import { Button } from "@/components/ui/Button";
+import { motionConfig } from "@/config/motion";
 import { HeroFanModel } from "@/components/three/HeroFanModel";
 import { ViewCameraSetup } from "@/components/three/ViewCameraSetup";
 
@@ -83,7 +84,7 @@ export function HeroSection({ onOpenQuoteModal }: HeroSectionProps) {
               <directionalLight position={[4, 5, 5]} intensity={2.2} />
               <directionalLight position={[-4, -2, -3]} intensity={1.2} />
               <directionalLight position={[-3, 2, 3]} intensity={1.6} color="#2BD9E6" />
-              <HeroFanModel mode="hero" scale={1.25} />
+              <HeroFanModel mode="hero" scale={motionConfig.models.hero.fanScale} />
             </View>
           </div>
         </div>

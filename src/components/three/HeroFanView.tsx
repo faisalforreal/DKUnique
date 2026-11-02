@@ -2,6 +2,7 @@
 
 import React from "react";
 import { View } from "@react-three/drei";
+import { motionConfig } from "@/config/motion";
 import { HeroFanModel } from "./HeroFanModel";
 
 interface HeroFanViewProps {
@@ -17,7 +18,7 @@ export function HeroFanView({ trackRef }: HeroFanViewProps) {
 
       <HeroFanModel
         mode="hero"
-        scale={1.1}
+        scale={motionConfig.models.hero.fanScale}
       />
     </View>
   );

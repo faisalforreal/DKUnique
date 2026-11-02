@@ -384,7 +384,11 @@ export function HeroFanModel({
       {/* 2. Native 3D Hologram (Positioned at Z = 0.25 in front of blades with zero intersection) */}
       {showHologram && (
         <HologramModel
-          scale={0.24}
+          scale={
+            mode === "hero"
+              ? motionConfig.models.hero.hologramScale
+              : motionConfig.models.howItWorks.hologramScale
+          }
           position={[0, 0, 0.25]}
           opacityRef={activeOpacityRef}
         />

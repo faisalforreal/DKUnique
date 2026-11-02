@@ -5,6 +5,21 @@
  */
 
 export interface MotionConfig {
+  models: {
+    hero: {
+      fanScale: number; // Overall fan assembly size in hero section
+      hologramScale: number; // 3D hologram size mounted on hero fan
+    };
+    howItWorks: {
+      fanScale: number; // Overall fan size in scroll section
+      hologramScale: number; // 3D hologram size in scroll section
+    };
+    studio: {
+      fanScale: number; // Fan size in 3D studio when fan toggle is visible
+      hologramScaleWithFan: number; // Hologram size when mounted on fan in studio
+      hologramScaleSolo: number; // Hologram size when floating solo in studio
+    };
+  };
   hero: {
     idleSpinSpeed: number; // Rad/sec in idle state
     tiltSensitivity: number; // Pointer tracking factor
@@ -72,6 +87,21 @@ export interface MotionConfig {
 }
 
 export const motionConfig: MotionConfig = {
+  models: {
+    hero: {
+      fanScale: 1.25, // Tweak overall hero fan assembly size
+      hologramScale: 0.24, // Tweak hero 3D hologram size
+    },
+    howItWorks: {
+      fanScale: 1.05, // Tweak how-it-works fan size
+      hologramScale: 0.24, // Tweak how-it-works hologram size
+    },
+    studio: {
+      fanScale: 1.1, // Tweak studio fan size when visible
+      hologramScaleWithFan: 0.26, // Tweak studio hologram size with fan mounted
+      hologramScaleSolo: 0.44, // Tweak studio solo floating hologram size
+    },
+  },
   hero: {
     idleSpinSpeed: 8.0,
     tiltSensitivity: 0.35,
