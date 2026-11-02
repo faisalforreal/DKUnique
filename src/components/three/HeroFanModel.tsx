@@ -10,7 +10,6 @@ interface HeroFanModelProps {
   mode?: "hero" | "how-it-works";
   progressRef?: React.MutableRefObject<number>;
   scale?: number;
-  hologramStyleIndex?: number;
 }
 
 // Module-level GLB cache to prevent re-fetching and parse once
@@ -53,7 +52,6 @@ export function HeroFanModel({
   mode = "hero",
   progressRef,
   scale = 1.0,
-  hologramStyleIndex = 0,
 }: HeroFanModelProps) {
   const rootRef = useRef<THREE.Group>(null);
   const rotorRef = useRef<THREE.Object3D | null>(null);
@@ -218,14 +216,13 @@ export function HeroFanModel({
       const maxSpinSpeed = motionConfig.hero.startup.maxSpinSpeed;
       const fanMinOpacity = motionConfig.hero.startup.fanMinOpacity;
       const fanMaxOpacity = motionConfig.hero.startup.fanMaxOpacity;
-      const hologramMinOpacity = motionConfig.hero.startup.hologramMinOpacity;
       const hologramMaxOpacity = motionConfig.hero.startup.hologramMaxOpacity;
 
       if (t < stillDuration) {
         // 1. Initial still state: fan visible, still, hologram hidden
         currentSpinSpeed = 0;
         currentFanOpacity = fanMaxOpacity;
-        currentHoloOpacity = hologramMinOpacity;
+        currentHoloOpacity = 0;
         currentLedIntensity = 0.5;
       } else if (t < stillDuration + spinUpDuration) {
         // 2. Spin-up phase: Starts slow and accelerates to full speed
@@ -233,11 +230,19 @@ export function HeroFanModel({
         // Smoothstep curve for natural mechanical acceleration
         const ease = progress * progress * (3 - 2 * progress);
         currentSpinSpeed = THREE.MathUtils.lerp(0, maxSpinSpeed, ease);
-        // Visibility of fan drops gradually to ~5%
-        currentFanOpacity = THREE.MathUtils.lerp(fanMaxOpacity, fanMinOpacity, ease);
-        // Visibility of hologram rises from 0 to 100%
-        currentHoloOpacity = THREE.MathUtils.lerp(hologramMinOpacity, hologramMaxOpacity, ease);
         currentLedIntensity = THREE.MathUtils.lerp(0.5, motionConfig.howItWorks.ledVisibility.emissiveMax, ease);
+
+        // Delayed onset: Hologram stays strictly 0.0 until fan is already spinning fast (progress >= 0.68)
+        const onsetThreshold = 0.68;
+        if (progress < onsetThreshold) {
+          currentHoloOpacity = 0.0;
+          currentFanOpacity = THREE.MathUtils.lerp(fanMaxOpacity, 0.75, progress / onsetThreshold);
+        } else {
+          const holoProg = (progress - onsetThreshold) / (1.0 - onsetThreshold);
+          const holoEase = holoProg * holoProg * (3 - 2 * holoProg);
+          currentHoloOpacity = THREE.MathUtils.lerp(0.0, hologramMaxOpacity, holoEase);
+          currentFanOpacity = THREE.MathUtils.lerp(0.75, fanMinOpacity, holoEase);
+        }
       } else {
         // 3. Steady state at full speed: 5% fan opacity, 100% hologram visibility
         currentSpinSpeed = maxSpinSpeed;
@@ -322,64 +327,65 @@ export function HeroFanModel({
 
   return (
     <group ref={rootRef} scale={scale}>
-      {/* 1. GLB Fan Model */}
-      {isLoaded && instanceScene ? (
-        <primitive object={instanceScene} />
-      ) : loadFailed ? (
-        /* Emergency Fallback ONLY if network/parse fails completely */
-        <group>
-          <mesh name="Motor_Base" position={[0, 0, -0.08]} material={proceduralMaterials.motorBase}>
-            <cylinderGeometry args={[0.18, 0.22, 0.14, 32]} />
-          </mesh>
-
-          <group ref={proceduralRotorRef} name="Rotor_Hub">
-            <mesh position={[0, 0, 0]} material={proceduralMaterials.hubFace}>
-              <cylinderGeometry args={[0.16, 0.16, 0.04, 32]} />
-            </mesh>
-            <mesh position={[0, 0, 0.022]} material={proceduralMaterials.hubCenter}>
-              <circleGeometry args={[0.1, 32]} />
+      {/* 1. GLB Fan Model (Positioned at Z = -0.15 for authentic physical depth separation) */}
+      <group position={[0, 0, -0.15]}>
+        {isLoaded && instanceScene ? (
+          <primitive object={instanceScene} />
+        ) : loadFailed ? (
+          /* Emergency Fallback ONLY if network/parse fails completely */
+          <group>
+            <mesh name="Motor_Base" position={[0, 0, -0.08]} material={proceduralMaterials.motorBase}>
+              <cylinderGeometry args={[0.18, 0.22, 0.14, 32]} />
             </mesh>
 
-            {[
-              { name: "Blade_01", angle: 0 },
-              { name: "Blade_02", angle: Math.PI / 2 },
-              { name: "Blade_03", angle: Math.PI },
-              { name: "Blade_04", angle: (Math.PI * 3) / 2 },
-            ].map((b) => (
-              <group key={b.name} name={b.name} rotation={[0, 0, b.angle]}>
-                <mesh position={[0.58, 0, 0.005]} material={proceduralMaterials.bladeBody}>
-                  <boxGeometry args={[0.98, 0.072, 0.012]} />
-                </mesh>
-                <mesh position={[0.58, 0.038, 0.003]} material={proceduralMaterials.bladeRidge}>
-                  <boxGeometry args={[0.96, 0.006, 0.008]} />
-                </mesh>
-                <mesh position={[0.62, 0, 0.014]} material={proceduralMaterials.bladeStrip}>
-                  <boxGeometry args={[0.9, 0.014, 0.004]} />
-                </mesh>
-              </group>
-            ))}
+            <group ref={proceduralRotorRef} name="Rotor_Hub">
+              <mesh position={[0, 0, 0]} material={proceduralMaterials.hubFace}>
+                <cylinderGeometry args={[0.16, 0.16, 0.04, 32]} />
+              </mesh>
+              <mesh position={[0, 0, 0.022]} material={proceduralMaterials.hubCenter}>
+                <circleGeometry args={[0.1, 32]} />
+              </mesh>
 
-            <points geometry={ledPoints}>
-              <pointsMaterial
-                ref={proceduralLedMaterialRef}
-                name="LED"
-                size={0.065}
-                color="#2BD9E6"
-                blending={THREE.AdditiveBlending}
-                transparent
-                depthWrite={false}
-              />
-            </points>
+              {[
+                { name: "Blade_01", angle: 0 },
+                { name: "Blade_02", angle: Math.PI / 2 },
+                { name: "Blade_03", angle: Math.PI },
+                { name: "Blade_04", angle: (Math.PI * 3) / 2 },
+              ].map((b) => (
+                <group key={b.name} name={b.name} rotation={[0, 0, b.angle]}>
+                  <mesh position={[0.58, 0, 0.005]} material={proceduralMaterials.bladeBody}>
+                    <boxGeometry args={[0.98, 0.072, 0.012]} />
+                  </mesh>
+                  <mesh position={[0.58, 0.038, 0.003]} material={proceduralMaterials.bladeRidge}>
+                    <boxGeometry args={[0.96, 0.006, 0.008]} />
+                  </mesh>
+                  <mesh position={[0.62, 0, 0.014]} material={proceduralMaterials.bladeStrip}>
+                    <boxGeometry args={[0.9, 0.014, 0.004]} />
+                  </mesh>
+                </group>
+              ))}
+
+              <points geometry={ledPoints}>
+                <pointsMaterial
+                  ref={proceduralLedMaterialRef}
+                  name="LED"
+                  size={0.065}
+                  color="#2BD9E6"
+                  blending={THREE.AdditiveBlending}
+                  transparent
+                  depthWrite={false}
+                />
+              </points>
+            </group>
           </group>
-        </group>
-      ) : null}
+        ) : null}
+      </group>
 
-      {/* 2. Native 3D Hologram (True Transparency, 3D Rotation & Glowing Loops) */}
+      {/* 2. Native 3D Hologram (Positioned at Z = 0.25 in front of blades with zero intersection) */}
       {showHologram && (
         <HologramModel
-          styleIndex={hologramStyleIndex}
           scale={0.24}
-          position={[0, 0, 0.06]}
+          position={[0, 0, 0.25]}
           opacityRef={activeOpacityRef}
         />
       )}

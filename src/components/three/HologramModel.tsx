@@ -42,8 +42,6 @@ export const HOLOGRAM_MODELS = [
   },
 ] as const;
 
-export type HologramStyleId = (typeof HOLOGRAM_MODELS)[number]["id"];
-
 interface CachedHologramData {
   scene: THREE.Group;
   animations: THREE.AnimationClip[];
@@ -78,7 +76,7 @@ async function loadHologramGlb(filePath: string): Promise<CachedHologramData | n
   return promise;
 }
 
-// Preload all 5 hologram models in browser
+// Preload all 5 models immediately in browser
 if (typeof window !== "undefined") {
   HOLOGRAM_MODELS.forEach((m) => {
     loadHologramGlb(m.file).catch(() => {});
@@ -86,7 +84,6 @@ if (typeof window !== "undefined") {
 }
 
 export interface HologramModelProps {
-  styleIndex?: number;
   scale?: number;
   position?: [number, number, number];
   rotation?: [number, number, number];
@@ -94,133 +91,174 @@ export interface HologramModelProps {
   opacity?: number;
   autoRotate?: boolean;
   autoRotateSpeed?: number;
-  onLoaded?: () => void;
+}
+
+interface LoadedSlot {
+  index: number;
+  group: THREE.Group;
+  materials: THREE.Material[];
+  mixer: THREE.AnimationMixer | null;
 }
 
 export function HologramModel({
-  styleIndex = 0,
-  scale = 0.22,
-  position = [0, 0, 0.05],
+  scale = 0.24,
+  position = [0, 0, 0.25],
   rotation = [0, 0, 0],
   opacityRef,
   opacity: directOpacity = 1.0,
   autoRotate = false,
   autoRotateSpeed = 0.5,
-  onLoaded,
 }: HologramModelProps) {
   const rootRef = useRef<THREE.Group>(null);
   const spinRef = useRef<THREE.Group>(null);
-  const mixerRef = useRef<THREE.AnimationMixer | null>(null);
-  const materialsRef = useRef<THREE.Material[]>([]);
 
-  const [instanceScene, setInstanceScene] = useState<THREE.Group | null>(null);
-  const [isReady, setIsReady] = useState(false);
+  // Cross-fading model slots: Slot A (current) and Slot B (incoming next colorway)
+  const [slotA, setSlotA] = useState<LoadedSlot | null>(null);
+  const [slotB, setSlotB] = useState<LoadedSlot | null>(null);
 
-  // Fade-in transition when switching models
-  const fadeAlphaRef = useRef(0);
+  // Timing refs for seamless loop cross-fade
+  const currentModelIndexRef = useRef(0);
+  const loopCycleTimeRef = useRef(0);
+  const cycleDuration = 4.0; // 4.0 seconds per complete HologramLoop cycle
+  const crossFadeDuration = 0.8; // 0.8 second smooth fade into the next model
 
-  const safeIndex = Math.max(0, Math.min(styleIndex, HOLOGRAM_MODELS.length - 1));
-  const modelDef = HOLOGRAM_MODELS[safeIndex];
+  // Helper to instantiate and clone a model slot
+  const createSlot = async (modelIndex: number): Promise<LoadedSlot | null> => {
+    const modelDef = HOLOGRAM_MODELS[modelIndex % HOLOGRAM_MODELS.length];
+    const data = await loadHologramGlb(modelDef.file);
+    if (!data) return null;
 
+    const clone = data.scene.clone(true);
+    const mats: THREE.Material[] = [];
+
+    clone.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) {
+        const mesh = child as THREE.Mesh;
+        if (Array.isArray(mesh.material)) {
+          mesh.material = mesh.material.map((m) => m.clone());
+        } else if (mesh.material) {
+          mesh.material = mesh.material.clone();
+        }
+
+        const meshMats = Array.isArray(mesh.material)
+          ? mesh.material
+          : [mesh.material];
+
+        meshMats.forEach((mat) => {
+          if (mat) {
+            mat.transparent = true;
+            mat.depthWrite = false;
+            mat.blending = THREE.AdditiveBlending;
+            mats.push(mat);
+          }
+        });
+      }
+    });
+
+    let mixer: THREE.AnimationMixer | null = null;
+    if (data.animations && data.animations.length > 0) {
+      mixer = new THREE.AnimationMixer(clone);
+      const clip = data.animations.find((a) => a.name === "HologramLoop") || data.animations[0];
+      if (clip) {
+        const action = mixer.clipAction(clip);
+        action.play();
+      }
+    }
+
+    return { index: modelIndex, group: clone, materials: mats, mixer };
+  };
+
+  // Initial load: setup Slot A (model 0) and Slot B (model 1)
   useEffect(() => {
     let active = true;
-    setIsReady(false);
-    fadeAlphaRef.current = 0;
 
-    loadHologramGlb(modelDef.file).then((data) => {
+    Promise.all([createSlot(0), createSlot(1)]).then(([first, second]) => {
       if (!active) return;
-      if (!data) return;
-
-      // Deep clone scene hierarchy so instances don't share mutation state
-      const clone = data.scene.clone(true);
-      const mats: THREE.Material[] = [];
-
-      clone.traverse((child) => {
-        if ((child as THREE.Mesh).isMesh) {
-          const mesh = child as THREE.Mesh;
-          if (Array.isArray(mesh.material)) {
-            mesh.material = mesh.material.map((m) => m.clone());
-          } else if (mesh.material) {
-            mesh.material = mesh.material.clone();
-          }
-
-          const meshMats = Array.isArray(mesh.material)
-            ? mesh.material
-            : [mesh.material];
-
-          meshMats.forEach((mat) => {
-            if (mat) {
-              mat.transparent = true;
-              mat.depthWrite = false;
-              mat.blending = THREE.AdditiveBlending;
-              mats.push(mat);
-            }
-          });
-        }
-      });
-
-      materialsRef.current = mats;
-
-      // Setup AnimationMixer for HologramLoop
-      if (data.animations && data.animations.length > 0) {
-        const mixer = new THREE.AnimationMixer(clone);
-        const clip = data.animations.find((a) => a.name === "HologramLoop") || data.animations[0];
-        if (clip) {
-          const action = mixer.clipAction(clip);
-          action.play();
-        }
-        mixerRef.current = mixer;
-      } else {
-        mixerRef.current = null;
-      }
-
-      setInstanceScene(clone);
-      setIsReady(true);
-      if (onLoaded) onLoaded();
+      if (first) setSlotA(first);
+      if (second) setSlotB(second);
     });
 
     return () => {
       active = false;
-      if (mixerRef.current) {
-        mixerRef.current.stopAllAction();
-        mixerRef.current = null;
-      }
     };
-  }, [modelDef.file, onLoaded]);
+  }, []);
 
-  // Animation frame loop
+  // Frame loop: updates mixers in sync, handles cross-fade, and advances color spectrum
   useFrame((_, delta) => {
-    if (!isReady || !instanceScene) return;
+    loopCycleTimeRef.current += delta;
+    const t = loopCycleTimeRef.current;
 
-    // Advance mixer animation clip
-    if (mixerRef.current) {
-      mixerRef.current.update(delta);
-    }
+    // Advance both slot mixers in perfect synchrony
+    if (slotA?.mixer) slotA.mixer.update(delta);
+    if (slotB?.mixer) slotB.mixer.update(delta);
 
-    // Auto-rotate if enabled (e.g. In showcase/studio mode)
+    // Auto-rotate if requested
     if (autoRotate && spinRef.current) {
       spinRef.current.rotation.y += delta * autoRotateSpeed;
     }
 
-    // Smooth fade-in
-    if (fadeAlphaRef.current < 1.0) {
-      fadeAlphaRef.current = Math.min(1.0, fadeAlphaRef.current + delta * 2.5);
-    }
-
-    // Determine target opacity: combines external opacityRef, directOpacity, and smooth fade-in
-    let targetOpacity = directOpacity * fadeAlphaRef.current;
+    // Determine target global opacity
+    let globalOpacity = directOpacity;
     if (opacityRef !== undefined) {
-      targetOpacity *= opacityRef.current;
+      globalOpacity *= opacityRef.current;
     }
 
-    const isVisible = targetOpacity > 0.01;
+    const isVisible = globalOpacity > 0.01;
     if (rootRef.current) {
       rootRef.current.visible = isVisible;
     }
 
-    if (isVisible) {
-      for (let i = 0; i < materialsRef.current.length; i++) {
-        materialsRef.current[i].opacity = targetOpacity;
+    if (!isVisible) return;
+
+    // Cross-fade logic:
+    // When loopCycleTime reaches (cycleDuration - crossFadeDuration), begin cross-fading into next model
+    const fadeStartTime = cycleDuration - crossFadeDuration;
+    let weightA = 1.0;
+    let weightB = 0.0;
+
+    if (t >= fadeStartTime && t < cycleDuration) {
+      // In cross-fade window: smoothly transfer weight from A to B
+      const progress = (t - fadeStartTime) / crossFadeDuration;
+      // Smoothstep easing for seamless luminance curve
+      const ease = progress * progress * (3 - 2 * progress);
+      weightA = 1.0 - ease;
+      weightB = ease;
+    } else if (t >= cycleDuration) {
+      // Cycle complete: reset timer, advance model index, and pre-load incoming next model
+      loopCycleTimeRef.current = 0;
+      const nextIndex = (currentModelIndexRef.current + 1) % HOLOGRAM_MODELS.length;
+      currentModelIndexRef.current = nextIndex;
+
+      // Slot B now becomes the primary visible slot
+      setSlotA(slotB);
+
+      // Preload next model in sequence into Slot B
+      const upcomingIndex = (nextIndex + 1) % HOLOGRAM_MODELS.length;
+      createSlot(upcomingIndex).then((newSlot) => {
+        if (newSlot) {
+          // Synchronize new slot's mixer time with Slot A so the animation never jumps
+          if (newSlot.mixer && slotB?.mixer) {
+            newSlot.mixer.setTime(loopCycleTimeRef.current);
+          }
+          setSlotB(newSlot);
+        }
+      });
+
+      weightA = 1.0;
+      weightB = 0.0;
+    }
+
+    // Apply combined opacities to materials (complementary weights: weightA + weightB = 1.0)
+    if (slotA) {
+      const alphaA = globalOpacity * weightA;
+      for (let i = 0; i < slotA.materials.length; i++) {
+        slotA.materials[i].opacity = alphaA;
+      }
+    }
+    if (slotB) {
+      const alphaB = globalOpacity * weightB;
+      for (let i = 0; i < slotB.materials.length; i++) {
+        slotB.materials[i].opacity = alphaB;
       }
     }
   });
@@ -228,10 +266,10 @@ export function HologramModel({
   return (
     <group ref={rootRef} position={position} rotation={rotation} scale={scale} visible={false}>
       <group ref={spinRef}>
-        {/* Hologram pivot offset: In Blender, rings and text are centered at Y=1.25.
-            Offsetting by Y=-1.25 aligns the hologram's center of gravity precisely on (0, 0, 0). */}
+        {/* Hologram pivot offset: Y=-1.25 centers the rotating rings & 3D text precisely on (0, 0, 0) */}
         <group position={[0, -1.25, 0]}>
-          {instanceScene && <primitive object={instanceScene} />}
+          {slotA && <primitive object={slotA.group} />}
+          {slotB && <primitive object={slotB.group} />}
         </group>
       </group>
     </group>

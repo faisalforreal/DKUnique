@@ -5,7 +5,6 @@ import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { copy } from "@/content/copy";
 import { siteConfig } from "@/config/site";
 import { Button } from "@/components/ui/Button";
-import { HOLOGRAM_MODELS } from "@/components/three/HologramModel";
 import { HologramStudioView } from "@/components/three/HologramStudioView";
 
 interface HologramStudioSectionProps {
@@ -19,7 +18,6 @@ export function HologramStudioSection({
   const trackRef = useRef<HTMLDivElement>(null);
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
 
-  const [activeStyleIndex, setActiveStyleIndex] = useState(0);
   const [autoSpin, setAutoSpin] = useState(true);
   const [showFan, setShowFan] = useState(false);
   const [domReady, setDomReady] = useState(false);
@@ -28,9 +26,6 @@ export function HologramStudioSection({
     setDomReady(true);
   }, []);
 
-  const activeStyle = HOLOGRAM_MODELS[activeStyleIndex];
-  const activeStyleCopy = copy.studio.styles[activeStyleIndex] || copy.studio.styles[0];
-
   const handleResetView = () => {
     if (controlsRef.current) {
       controlsRef.current.reset();
@@ -38,7 +33,7 @@ export function HologramStudioSection({
   };
 
   const whatsappConsultUrl = `https://wa.me/${siteConfig.whatsapp}?text=${encodeURIComponent(
-    `Hello, I would like to consult on custom 3D holographic visuals for my brand (Style: ${activeStyle.name}).`
+    "Hello, I would like to consult on custom 3D holographic visuals for my brand."
   )}`;
 
   return (
@@ -106,20 +101,14 @@ export function HologramStudioSection({
               ref={trackRef}
               className="relative w-full h-[380px] sm:h-[460px] md:h-[520px] rounded-xl border border-line/30 bg-black/40 flex items-center justify-center overflow-hidden touch-none"
             >
-              {/* Subtle Ambient Radial Glow matching selected style */}
-              <div
-                className="absolute inset-0 pointer-events-none opacity-20 blur-3xl transition-colors duration-700"
-                style={{
-                  background: `radial-gradient(circle at center, ${activeStyle.accent} 0%, transparent 70%)`,
-                }}
-              />
+              {/* Subtle Ambient Radial Glow */}
+              <div className="absolute inset-0 pointer-events-none opacity-20 blur-3xl bg-[radial-gradient(circle_at_center,_#00E5FF_0%,_transparent_70%)]" />
 
               {/* R3F Drei View */}
               {domReady && trackRef.current && (
                 <HologramStudioView
                   trackRef={trackRef}
                   domElement={trackRef.current}
-                  styleIndex={activeStyleIndex}
                   autoSpin={autoSpin}
                   showFan={showFan}
                   controlsRef={controlsRef}
@@ -131,83 +120,34 @@ export function HologramStudioSection({
                 <span className="font-mono text-[11px] text-paper/50 bg-black/60 px-3 py-1 rounded-full backdrop-blur-sm border border-line/20">
                   {copy.studio.rotateHint}
                 </span>
-                <span
-                  className="font-mono text-xs font-semibold px-2.5 py-0.5 rounded border"
-                  style={{
-                    color: activeStyle.accent,
-                    borderColor: `${activeStyle.accent}40`,
-                    backgroundColor: `${activeStyle.accent}15`,
-                  }}
-                >
-                  {activeStyle.name}
+                <span className="font-mono text-xs font-semibold px-2.5 py-0.5 rounded border border-signal/40 bg-signal/15 text-signal">
+                  Auto Color Spectrum
                 </span>
               </div>
             </div>
           </div>
 
-          {/* Right Column: Style Palette & Actions */}
+          {/* Right Column: Feature Highlights & Actions */}
           <div className="lg:col-span-5 flex flex-col space-y-6">
-            <div className="space-y-2">
-              <span className="font-mono text-xs uppercase tracking-wider text-paper/50">
-                {copy.studio.stylesLabel}
-              </span>
-              <h3 className="font-display font-bold text-2xl text-paper">
-                {activeStyleCopy.name}
-              </h3>
-              <p className="font-body text-sm text-paper/70 leading-relaxed">
-                {activeStyleCopy.description}
-              </p>
-            </div>
-
-            {/* Style Selector Buttons */}
-            <div className="space-y-2.5 pt-2">
-              {HOLOGRAM_MODELS.map((item, idx) => {
-                const isSelected = idx === activeStyleIndex;
-                const itemCopy = copy.studio.styles[idx] || copy.studio.styles[0];
-
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => setActiveStyleIndex(idx)}
-                    className={`w-full text-left p-3.5 rounded-lg border transition-all flex items-center justify-between gap-4 ${
-                      isSelected
-                        ? "border-signal bg-white/[0.06] shadow-lg shadow-black/40"
-                        : "border-line/30 bg-white/[0.02] hover:bg-white/[0.04] hover:border-line/60"
-                    }`}
-                  >
-                    <div className="flex items-center gap-3.5">
-                      {/* Color Glow Dot Swatch */}
-                      <span
-                        className="w-4 h-4 rounded-full flex-shrink-0 transition-transform"
-                        style={{
-                          backgroundColor: item.accent,
-                          boxShadow: isSelected
-                            ? `0 0 12px ${item.accent}, 0 0 4px ${item.glow}`
-                            : `0 0 4px ${item.accent}80`,
-                          transform: isSelected ? "scale(1.2)" : "scale(1.0)",
-                        }}
-                      />
-                      <div>
-                        <div
-                          className={`font-display text-sm font-semibold transition-colors ${
-                            isSelected ? "text-paper" : "text-paper/80"
-                          }`}
-                        >
-                          {itemCopy.name}
-                        </div>
-                        <div className="font-body text-xs text-paper/50 line-clamp-1 mt-0.5">
-                          {itemCopy.description}
-                        </div>
-                      </div>
-                    </div>
-
-                    <span className="font-mono text-xs text-paper/40">
-                      0{idx + 1}
-                    </span>
-                  </button>
-                );
-              })}
+            <div className="space-y-4 pt-2">
+              {copy.studio.features.map((feature, idx) => (
+                <div
+                  key={idx}
+                  className="p-4 rounded-lg border border-line/30 bg-white/[0.02] flex items-start gap-4"
+                >
+                  <span className="font-mono text-xs text-signal font-semibold pt-0.5">
+                    0{idx + 1}
+                  </span>
+                  <div>
+                    <h3 className="font-display text-base font-semibold text-paper">
+                      {feature.title}
+                    </h3>
+                    <p className="font-body text-xs sm:text-sm text-paper/70 mt-1 leading-relaxed">
+                      {feature.description}
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
 
             {/* CTAs */}
@@ -216,7 +156,7 @@ export function HologramStudioSection({
                 variant="stagePrimary"
                 size="lg"
                 className="w-full justify-center"
-                onClick={() => onSelectStyleQuote(activeStyle.name)}
+                onClick={() => onSelectStyleQuote("3D Hologram Loop")}
               >
                 {copy.studio.quoteButton}
               </Button>

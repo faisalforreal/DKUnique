@@ -1,22 +1,18 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { View } from "@react-three/drei";
 import { copy } from "@/content/copy";
 import { siteConfig } from "@/config/site";
-import { motionConfig } from "@/config/motion";
 import { Button } from "@/components/ui/Button";
 import { HeroFanModel } from "@/components/three/HeroFanModel";
 import { ViewCameraSetup } from "@/components/three/ViewCameraSetup";
-import { HOLOGRAM_MODELS } from "@/components/three/HologramModel";
 
 interface HeroSectionProps {
   onOpenQuoteModal: () => void;
 }
 
 export function HeroSection({ onOpenQuoteModal }: HeroSectionProps) {
-  const [hologramStyle, setHologramStyle] = useState(0);
-
   const whatsappUrl = `https://wa.me/${siteConfig.whatsapp}?text=${encodeURIComponent(
     "Hello, I am interested in 3D holographic fans from DK Unique Production."
   )}`;
@@ -87,28 +83,8 @@ export function HeroSection({ onOpenQuoteModal }: HeroSectionProps) {
               <directionalLight position={[4, 5, 5]} intensity={2.2} />
               <directionalLight position={[-4, -2, -3]} intensity={1.2} />
               <directionalLight position={[-3, 2, 3]} intensity={1.6} color="#2BD9E6" />
-              <HeroFanModel mode="hero" scale={1.25} hologramStyleIndex={hologramStyle} />
+              <HeroFanModel mode="hero" scale={1.25} />
             </View>
-
-            {/* Hologram Style Quick-Switcher */}
-            <div className="absolute bottom-2 sm:bottom-4 flex items-center gap-2 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-line/20 z-20">
-              <span className="font-mono text-[10px] text-paper/60 uppercase tracking-wider mr-1">
-                Visual Style
-              </span>
-              {HOLOGRAM_MODELS.map((item, idx) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setHologramStyle(idx)}
-                  title={item.name}
-                  aria-label={item.name}
-                  className={`w-3.5 h-3.5 rounded-full transition-transform ${
-                    idx === hologramStyle ? "scale-125 ring-2 ring-white" : "opacity-60 hover:opacity-100"
-                  }`}
-                  style={{ backgroundColor: item.accent }}
-                />
-              ))}
-            </div>
           </div>
         </div>
       </div>

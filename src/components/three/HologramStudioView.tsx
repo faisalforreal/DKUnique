@@ -10,7 +10,6 @@ import { ViewCameraSetup } from "./ViewCameraSetup";
 interface HologramStudioViewProps {
   trackRef: React.RefObject<HTMLDivElement | null>;
   domElement?: HTMLElement | null;
-  styleIndex: number;
   autoSpin: boolean;
   showFan: boolean;
   controlsRef?: React.MutableRefObject<OrbitControlsImpl | null>;
@@ -19,7 +18,6 @@ interface HologramStudioViewProps {
 export function HologramStudioView({
   trackRef,
   domElement,
-  styleIndex,
   autoSpin,
   showFan,
   controlsRef,
@@ -61,11 +59,10 @@ export function HologramStudioView({
         </group>
       )}
 
-      {/* Floating 3D Hologram Model */}
+      {/* Floating 3D Hologram Model with clear Z depth separation */}
       <HologramModel
-        styleIndex={styleIndex}
         scale={showFan ? 0.26 : 0.44}
-        position={[0, showFan ? 0 : -0.05, showFan ? 0.06 : 0]}
+        position={[0, showFan ? 0 : -0.05, showFan ? 0.25 : 0]}
       />
     </View>
   );

@@ -35,20 +35,17 @@ export const copy = {
   },
   studio: {
     heading: "Interactive 3D preview",
-    subheading: "Rotate in 360 degrees and try distinct visual styles to see how your logo floats in mid-air.",
-    stylesLabel: "Color style",
-    styles: [
-      { id: "cyan_magenta", name: "Neon Cyan", description: "Vibrant high-contrast glow for storefronts and dark stages." },
-      { id: "ice_electric_blue", name: "Electric Blue", description: "Crisp cool-tone visuals for product launches and events." },
-      { id: "violet_blue_cyan", name: "Cosmic Glow", description: "Eye-catching purple and magenta hues that draw crowds." },
-      { id: "amber_indigo", name: "Sunset Amber", description: "Warm golden light for luxury spaces and hospitality." },
-      { id: "mint_white", name: "Clean Mint", description: "Fresh, bright white-mint styling for clean modern brands." },
+    subheading: "Rotate in 360 degrees to see how floating 3D visuals and glowing motion look from every angle.",
+    features: [
+      { title: "Mid-air depth", description: "Floating graphics suspended cleanly in front of spinning blades." },
+      { title: "Continuous color loop", description: "Smooth transitions across vibrant palettes to catch eyes." },
+      { title: "360-degree viewing", description: "High visibility from any perspective across the venue floor." },
     ],
     rotateHint: "Drag to rotate in 360° • Pinch or scroll to zoom",
     resetView: "Reset view",
     autoSpin: "Auto spin",
     showFan: "Show fan blades",
-    quoteButton: "Get a quote for this style",
+    quoteButton: "Get a quote for your logo",
     customHelp: "Need custom 3D animations of your logo or product? We create them for you.",
   },
   categories: {
