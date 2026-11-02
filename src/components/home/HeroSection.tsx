@@ -8,25 +8,14 @@ import { motionConfig } from "@/config/motion";
 import { Button } from "@/components/ui/Button";
 import { HeroFanModel } from "@/components/three/HeroFanModel";
 import { ViewCameraSetup } from "@/components/three/ViewCameraSetup";
+import { HOLOGRAM_MODELS } from "@/components/three/HologramModel";
 
 interface HeroSectionProps {
   onOpenQuoteModal: () => void;
 }
 
 export function HeroSection({ onOpenQuoteModal }: HeroSectionProps) {
-  const [tilt, setTilt] = useState<[number, number]>([0, 0]);
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      const { innerWidth, innerHeight } = window;
-      const x = (e.clientX / innerWidth - 0.5) * motionConfig.hero.tiltSensitivity;
-      const y = (e.clientY / innerHeight - 0.5) * motionConfig.hero.tiltSensitivity;
-      setTilt([x, y]);
-    };
-
-    window.addEventListener("mousemove", handleMouseMove, { passive: true });
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, []);
+  const [hologramStyle, setHologramStyle] = useState(0);
 
   const whatsappUrl = `https://wa.me/${siteConfig.whatsapp}?text=${encodeURIComponent(
     "Hello, I am interested in 3D holographic fans from DK Unique Production."
@@ -59,9 +48,9 @@ export function HeroSection({ onOpenQuoteModal }: HeroSectionProps) {
               <Button
                 variant="stageSecondary"
                 size="lg"
-                href="#demo-videos"
+                href="#studio"
               >
-                {copy.hero.watchDemoButton}
+                Try 3D Studio
               </Button>
               <a
                 href={whatsappUrl}
@@ -91,15 +80,35 @@ export function HeroSection({ onOpenQuoteModal }: HeroSectionProps) {
           </div>
 
           {/* Right Column: Single Responsive 3D Fan Stage */}
-          <div className="lg:col-span-5 w-full h-[340px] sm:h-[420px] lg:h-[500px] xl:h-[580px] relative order-1 lg:order-2 flex items-center justify-center">
+          <div className="lg:col-span-5 w-full h-[340px] sm:h-[420px] lg:h-[500px] xl:h-[580px] relative order-1 lg:order-2 flex flex-col items-center justify-center">
             <View className="w-full h-full">
               <ViewCameraSetup />
               <ambientLight intensity={1.5} />
               <directionalLight position={[4, 5, 5]} intensity={2.2} />
               <directionalLight position={[-4, -2, -3]} intensity={1.2} />
               <directionalLight position={[-3, 2, 3]} intensity={1.6} color="#2BD9E6" />
-              <HeroFanModel mode="hero" tiltOffset={tilt} scale={1.25} />
+              <HeroFanModel mode="hero" scale={1.25} hologramStyleIndex={hologramStyle} />
             </View>
+
+            {/* Hologram Style Quick-Switcher */}
+            <div className="absolute bottom-2 sm:bottom-4 flex items-center gap-2 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-line/20 z-20">
+              <span className="font-mono text-[10px] text-paper/60 uppercase tracking-wider mr-1">
+                Visual Style
+              </span>
+              {HOLOGRAM_MODELS.map((item, idx) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setHologramStyle(idx)}
+                  title={item.name}
+                  aria-label={item.name}
+                  className={`w-3.5 h-3.5 rounded-full transition-transform ${
+                    idx === hologramStyle ? "scale-125 ring-2 ring-white" : "opacity-60 hover:opacity-100"
+                  }`}
+                  style={{ backgroundColor: item.accent }}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </div>

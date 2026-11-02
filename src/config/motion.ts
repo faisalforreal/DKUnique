@@ -17,6 +17,16 @@ export interface MotionConfig {
       target: [number, number, number]; // Focus target on fan hub
       fov: number;
     };
+    // Startup sequence when website loads
+    startup: {
+      stillDuration: number; // Seconds fan stays still after website loads (tweak this value)
+      spinUpDuration: number; // Seconds to accelerate from still to full speed (tweak this value)
+      maxSpinSpeed: number; // Full rotation speed in rad/sec (tweak this value)
+      fanMinOpacity: number; // Fan visibility at full speed (0.05 = 5% visibility)
+      fanMaxOpacity: number; // Fan visibility when still (1.0 = 100% visibility)
+      hologramMinOpacity: number; // Hologram visibility initially (0.0 = 0% visibility)
+      hologramMaxOpacity: number; // Hologram visibility at full speed (1.0 = 100% visibility)
+    };
   };
   howItWorks: {
     ranges: {
@@ -44,13 +54,6 @@ export interface MotionConfig {
     };
     mobileScrollLengthMultiplier: number;
   };
-  sizes: {
-    minScaleCm: number; // 14 cm
-    maxScaleCm: number; // 100 cm
-    scaleCurvePower: number;
-    cameraZOffset: number;
-    mobileScrollLengthMultiplier: number;
-  };
   hologram: {
     videoSrcMp4: string;
     videoSrcWebm: string;
@@ -73,14 +76,23 @@ export const motionConfig: MotionConfig = {
     idleSpinSpeed: 8.0,
     tiltSensitivity: 0.35,
     lerpFactor: 0.08,
+    // Startup sequence when website loads
+    startup: {
+      stillDuration: 2.0, // Stays still for 2 seconds (tweak this value)
+      spinUpDuration: 3.0, // Starts slow and smoothly accelerates to full speed
+      maxSpinSpeed: 18.0, // High rotation speed at full velocity
+      fanMinOpacity: 0.05, // Opacity drops to 5% as it reaches full speed (tweak this value)
+      fanMaxOpacity: 1.0, // Initial 100% solid opacity
+      hologramMinOpacity: 0.0, // Hologram begins at 0%
+      hologramMaxOpacity: 1.0, // Hologram rises gradually to 100%
+    },
     camera: {
-      // Three-quarter side view: ~30 degrees off Z-axis, ~18 degrees above horizontal
-      // Shows motor housing and wall-mount plate clearly; never a top-down view
-      angleDegrees: 30,
-      elevationDegrees: 18,
-      distance: 2.15,
-      position: [1.02, 0.62, 1.76],
-      target: [0, 0, -0.04],
+      // Straight-on front view: directly centered on fan hub & hologram text along Z-axis
+      angleDegrees: 0,
+      elevationDegrees: 0,
+      distance: 2.2,
+      position: [0, 0, 2.2],
+      target: [0, 0, 0],
       fov: 42,
     },
   },
@@ -109,13 +121,6 @@ export const motionConfig: MotionConfig = {
       max: 1.0,
     },
     mobileScrollLengthMultiplier: 0.7,
-  },
-  sizes: {
-    minScaleCm: 14,
-    maxScaleCm: 100,
-    scaleCurvePower: 1.0,
-    cameraZOffset: 2.5,
-    mobileScrollLengthMultiplier: 0.65,
   },
   hologram: {
     videoSrcMp4: "/assets/demo/holo-loop.mp4",

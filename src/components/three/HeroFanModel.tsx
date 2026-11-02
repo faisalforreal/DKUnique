@@ -4,13 +4,13 @@ import React, { useRef, useMemo, useState, useEffect } from "react";
 import * as THREE from "three";
 import { useFrame } from "@react-three/fiber";
 import { motionConfig } from "@/config/motion";
-import { HologramVideoPlane } from "./HologramVideoPlane";
+import { HologramModel } from "./HologramModel";
 
 interface HeroFanModelProps {
-  mode?: "hero" | "how-it-works" | "sizes";
+  mode?: "hero" | "how-it-works";
   progressRef?: React.MutableRefObject<number>;
-  tiltOffset?: [number, number];
   scale?: number;
+  hologramStyleIndex?: number;
 }
 
 // Module-level GLB cache to prevent re-fetching and parse once
@@ -52,19 +52,70 @@ async function getHeroFanGlbScene(): Promise<THREE.Group | null> {
 export function HeroFanModel({
   mode = "hero",
   progressRef,
-  tiltOffset = [0, 0],
   scale = 1.0,
+  hologramStyleIndex = 0,
 }: HeroFanModelProps) {
   const rootRef = useRef<THREE.Group>(null);
   const rotorRef = useRef<THREE.Object3D | null>(null);
   const proceduralRotorRef = useRef<THREE.Group>(null);
-  const hologramRef = useRef<THREE.Group>(null);
   const ledMaterialsRef = useRef<THREE.MeshStandardMaterial[]>([]);
+  const glbMaterialsRef = useRef<THREE.Material[]>([]);
+  const proceduralMaterialsRef = useRef<THREE.Material[]>([]);
   const proceduralLedMaterialRef = useRef<THREE.PointsMaterial | null>(null);
+
+  // Time & opacity tracking for hero startup sequence
+  const timeElapsedRef = useRef(0);
+  const heroHoloOpacityRef = useRef(0);
+  const howItWorksHoloOpacityRef = useRef(0);
+
+  // Smooth fade-in on initial load to avoid abrupt popping
+  const loadFadeRef = useRef(0);
 
   const [instanceScene, setInstanceScene] = useState<THREE.Group | null>(null);
   const [useGlb, setUseGlb] = useState(false);
-  const [videoAvailable, setVideoAvailable] = useState<boolean | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
+
+  // Procedural fan materials with transparency support (emergency fallback only)
+  const proceduralMaterials = useMemo(() => {
+    const mats = {
+      motorBase: new THREE.MeshStandardMaterial({
+        color: "#222630",
+        roughness: 0.3,
+        metalness: 0.7,
+        transparent: true,
+      }),
+      hubFace: new THREE.MeshStandardMaterial({
+        color: "#181B22",
+        roughness: 0.3,
+        metalness: 0.8,
+        transparent: true,
+      }),
+      hubCenter: new THREE.MeshStandardMaterial({
+        color: "#3D4452",
+        roughness: 0.2,
+        metalness: 0.9,
+        transparent: true,
+      }),
+      bladeBody: new THREE.MeshStandardMaterial({
+        color: "#1E222B",
+        roughness: 0.4,
+        metalness: 0.5,
+        transparent: true,
+      }),
+      bladeRidge: new THREE.MeshStandardMaterial({
+        color: "#2E3442",
+        roughness: 0.3,
+        metalness: 0.7,
+        transparent: true,
+      }),
+      bladeStrip: new THREE.MeshBasicMaterial({
+        color: "#2BD9E6",
+        transparent: true,
+      }),
+    };
+    proceduralMaterialsRef.current = Object.values(mats);
+    return mats;
+  }, []);
 
   // Load and deep-clone the GLB model for this specific view instance
   useEffect(() => {
@@ -73,6 +124,7 @@ export function HeroFanModel({
     getHeroFanGlbScene().then((rawScene) => {
       if (!active) return;
       if (!rawScene) {
+        setLoadFailed(true);
         setUseGlb(false);
         return;
       }
@@ -80,6 +132,7 @@ export function HeroFanModel({
       // Deep clone scene hierarchy and clone materials so each instance is independent
       const clone = rawScene.clone(true);
       const foundLeds: THREE.MeshStandardMaterial[] = [];
+      const foundFanMats: THREE.Material[] = [];
       let foundRotor: THREE.Object3D | null = null;
 
       clone.traverse((node) => {
@@ -96,11 +149,15 @@ export function HeroFanModel({
 
           const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
           mats.forEach((m) => {
-            if (m && m.name === "LED") {
-              const stdMat = m as THREE.MeshStandardMaterial;
-              stdMat.emissive = new THREE.Color("#2BD9E6");
-              stdMat.emissiveIntensity = 3.5;
-              foundLeds.push(stdMat);
+            if (m) {
+              m.transparent = true;
+              foundFanMats.push(m);
+              if (m.name === "LED") {
+                const stdMat = m as THREE.MeshStandardMaterial;
+                stdMat.emissive = new THREE.Color("#2BD9E6");
+                stdMat.emissiveIntensity = 3.5;
+                foundLeds.push(stdMat);
+              }
             }
           });
         }
@@ -108,8 +165,10 @@ export function HeroFanModel({
 
       rotorRef.current = foundRotor;
       ledMaterialsRef.current = foundLeds;
+      glbMaterialsRef.current = foundFanMats;
       setInstanceScene(clone);
       setUseGlb(true);
+      setLoadFailed(false);
     });
 
     return () => {
@@ -117,7 +176,7 @@ export function HeroFanModel({
     };
   }, []);
 
-  // Discrete LED points running down the 4 procedural blades (fallback model)
+  // Discrete LED points running down the 4 procedural blades (fallback model only)
   const ledPoints = useMemo(() => {
     const coords: number[] = [];
     const ledsPerBlade = 24;
@@ -139,34 +198,72 @@ export function HeroFanModel({
     return geometry;
   }, []);
 
-  // Center Persistence-of-Vision Hologram Geometry (Procedural Fallback when video is missing)
-  const hologramGeometry = useMemo(() => {
-    const coords: number[] = [];
-    const pointCount = 180;
-    const baseRadius = 0.28;
-
-    for (let i = 0; i < pointCount; i++) {
-      const theta = (i / pointCount) * Math.PI * 2;
-      const x = Math.cos(theta) * baseRadius;
-      const y = Math.sin(theta) * baseRadius;
-      const z = Math.sin(theta * 4) * 0.04;
-      coords.push(x, y, z);
+  useFrame((_, delta) => {
+    // Smooth fade-in once loaded
+    if (instanceScene && loadFadeRef.current < 1.0) {
+      loadFadeRef.current = Math.min(1.0, loadFadeRef.current + delta * 3.0);
     }
 
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute("position", new THREE.Float32BufferAttribute(coords, 3));
-    return geometry;
-  }, []);
-
-  // Frame loop: code-driven spin about Z and scroll-throttled LED emissive intensity
-  useFrame((_, delta) => {
-    let currentSpinSpeed = motionConfig.hero.idleSpinSpeed;
+    let currentSpinSpeed = 0;
+    let currentFanOpacity = 1.0;
     let currentHoloOpacity = 0;
-    let currentHoloZ = motionConfig.hologram.zOffsetInPlane;
-    let currentLedIntensity = motionConfig.howItWorks.ledVisibility.emissiveMax;
-    let targetScale = scale;
+    let currentLedIntensity = 1.0;
 
-    if (mode === "how-it-works" && progressRef) {
+    if (mode === "hero") {
+      timeElapsedRef.current += delta;
+      const t = timeElapsedRef.current;
+
+      const stillDuration = motionConfig.hero.startup.stillDuration;
+      const spinUpDuration = motionConfig.hero.startup.spinUpDuration;
+      const maxSpinSpeed = motionConfig.hero.startup.maxSpinSpeed;
+      const fanMinOpacity = motionConfig.hero.startup.fanMinOpacity;
+      const fanMaxOpacity = motionConfig.hero.startup.fanMaxOpacity;
+      const hologramMinOpacity = motionConfig.hero.startup.hologramMinOpacity;
+      const hologramMaxOpacity = motionConfig.hero.startup.hologramMaxOpacity;
+
+      if (t < stillDuration) {
+        // 1. Initial still state: fan visible, still, hologram hidden
+        currentSpinSpeed = 0;
+        currentFanOpacity = fanMaxOpacity;
+        currentHoloOpacity = hologramMinOpacity;
+        currentLedIntensity = 0.5;
+      } else if (t < stillDuration + spinUpDuration) {
+        // 2. Spin-up phase: Starts slow and accelerates to full speed
+        const progress = Math.min(1, Math.max(0, (t - stillDuration) / spinUpDuration));
+        // Smoothstep curve for natural mechanical acceleration
+        const ease = progress * progress * (3 - 2 * progress);
+        currentSpinSpeed = THREE.MathUtils.lerp(0, maxSpinSpeed, ease);
+        // Visibility of fan drops gradually to ~5%
+        currentFanOpacity = THREE.MathUtils.lerp(fanMaxOpacity, fanMinOpacity, ease);
+        // Visibility of hologram rises from 0 to 100%
+        currentHoloOpacity = THREE.MathUtils.lerp(hologramMinOpacity, hologramMaxOpacity, ease);
+        currentLedIntensity = THREE.MathUtils.lerp(0.5, motionConfig.howItWorks.ledVisibility.emissiveMax, ease);
+      } else {
+        // 3. Steady state at full speed: 5% fan opacity, 100% hologram visibility
+        currentSpinSpeed = maxSpinSpeed;
+        currentFanOpacity = fanMinOpacity;
+        currentHoloOpacity = hologramMaxOpacity;
+        currentLedIntensity = motionConfig.howItWorks.ledVisibility.emissiveMax;
+      }
+
+      heroHoloOpacityRef.current = currentHoloOpacity;
+
+      // Update fan mesh opacity
+      glbMaterialsRef.current.forEach((mat) => {
+        mat.opacity = currentFanOpacity * loadFadeRef.current;
+      });
+      proceduralMaterialsRef.current.forEach((mat) => {
+        mat.opacity = currentFanOpacity * loadFadeRef.current;
+      });
+    } else if (mode === "how-it-works" && progressRef) {
+      // Solid fan visibility in how-it-works mode
+      glbMaterialsRef.current.forEach((mat) => {
+        mat.opacity = 1.0 * loadFadeRef.current;
+      });
+      proceduralMaterialsRef.current.forEach((mat) => {
+        mat.opacity = 1.0 * loadFadeRef.current;
+      });
+
       const p = Math.max(0, Math.min(1, progressRef.current));
       const { ranges, spinSpeeds, ledVisibility } = motionConfig.howItWorks;
 
@@ -187,14 +284,9 @@ export function HeroFanModel({
         currentSpinSpeed = THREE.MathUtils.lerp(spinSpeeds.minSpin, spinSpeeds.finalSpin, t);
         currentLedIntensity = THREE.MathUtils.lerp(ledVisibility.emissiveMin, ledVisibility.emissiveMax, t);
         currentHoloOpacity = THREE.MathUtils.lerp(0, 1, t);
-        currentHoloZ = motionConfig.hologram.zOffsetInPlane + motionConfig.hologram.riseDistance * t;
       }
-    } else if (mode === "sizes" && progressRef) {
-      const p = Math.max(0, Math.min(1, progressRef.current));
-      targetScale = THREE.MathUtils.lerp(0.35, 1.35, p);
-      currentSpinSpeed = 9.0;
-      currentHoloOpacity = 0;
-      currentLedIntensity = 3.5;
+
+      howItWorksHoloOpacityRef.current = currentHoloOpacity;
     }
 
     // 1. Rotate node named Rotor_Hub about Z by code
@@ -203,74 +295,51 @@ export function HeroFanModel({
       activeRotor.rotation.z += currentSpinSpeed * delta;
     }
 
-    // 2. Throttle material "LED" emissive intensity
-    if (useGlb && ledMaterialsRef.current.length > 0) {
-      ledMaterialsRef.current.forEach((mat) => {
-        mat.emissiveIntensity = currentLedIntensity;
-      });
-    } else if (proceduralLedMaterialRef.current) {
-      proceduralLedMaterialRef.current.opacity = Math.max(0.2, currentLedIntensity / 3.5);
+    // 2. Drive emissive LEDs
+    ledMaterialsRef.current.forEach((mat) => {
+      mat.emissiveIntensity = currentLedIntensity;
+    });
+
+    if (proceduralLedMaterialRef.current) {
+      proceduralLedMaterialRef.current.opacity = Math.min(1.0, currentLedIntensity / 2.5);
     }
 
-    // 3. Center procedural hologram animation (when video plane is missing or errored)
-    if (hologramRef.current) {
-      hologramRef.current.position.z = currentHoloZ;
-      hologramRef.current.rotation.z -= currentSpinSpeed * 0.35 * delta;
-      hologramRef.current.rotation.y += 0.8 * delta;
-      hologramRef.current.scale.setScalar(Math.max(0.001, currentHoloOpacity));
-    }
-
-    // 4. Smooth scale and tilt
+    // 3. Stable front-facing alignment (no mouse-tracking tilt)
     if (rootRef.current) {
-      rootRef.current.scale.setScalar(targetScale);
-      if (mode === "hero") {
-        rootRef.current.rotation.x = THREE.MathUtils.lerp(
-          rootRef.current.rotation.x,
-          tiltOffset[1],
-          0.08
-        );
-        rootRef.current.rotation.y = THREE.MathUtils.lerp(
-          rootRef.current.rotation.y,
-          tiltOffset[0],
-          0.08
-        );
-      } else {
-        rootRef.current.rotation.x = 0;
-        rootRef.current.rotation.y = 0;
-      }
+      rootRef.current.rotation.x = 0;
+      rootRef.current.rotation.y = 0;
     }
   });
 
-  const showHologramPlane = mode === "how-it-works";
-  const showProceduralHologram = mode === "how-it-works" && videoAvailable !== true;
+  const showHologram = mode === "how-it-works" || mode === "hero";
+  const activeOpacityRef = mode === "hero" ? heroHoloOpacityRef : howItWorksHoloOpacityRef;
+
+  // UX Fix: If the GLB is still downloading, render NOTHING (no awkward unscaled placeholder)
+  const isLoaded = useGlb && instanceScene;
+  if (!isLoaded && !loadFailed) {
+    return <group ref={rootRef} scale={scale} visible={false} />;
+  }
 
   return (
     <group ref={rootRef} scale={scale}>
-      {/* GLB Override Model if loaded */}
-      {useGlb && instanceScene ? (
+      {/* 1. GLB Fan Model */}
+      {isLoaded && instanceScene ? (
         <primitive object={instanceScene} />
-      ) : (
-        /* Procedural Fan Model with identical node hierarchy */
+      ) : loadFailed ? (
+        /* Emergency Fallback ONLY if network/parse fails completely */
         <group>
-          {/* 1. Stationary Motor Base */}
-          <mesh name="Motor_Base" position={[0, 0, -0.08]}>
+          <mesh name="Motor_Base" position={[0, 0, -0.08]} material={proceduralMaterials.motorBase}>
             <cylinderGeometry args={[0.18, 0.22, 0.14, 32]} />
-            <meshStandardMaterial color="#222630" roughness={0.3} metalness={0.7} />
           </mesh>
 
-          {/* 2. Rotating Hub & 4 Blades (Rotor_Hub) */}
           <group ref={proceduralRotorRef} name="Rotor_Hub">
-            {/* Hub Face Plate */}
-            <mesh position={[0, 0, 0]}>
+            <mesh position={[0, 0, 0]} material={proceduralMaterials.hubFace}>
               <cylinderGeometry args={[0.16, 0.16, 0.04, 32]} />
-              <meshStandardMaterial color="#181B22" roughness={0.3} metalness={0.8} />
             </mesh>
-            <mesh position={[0, 0, 0.022]}>
+            <mesh position={[0, 0, 0.022]} material={proceduralMaterials.hubCenter}>
               <circleGeometry args={[0.1, 32]} />
-              <meshStandardMaterial color="#3D4452" roughness={0.2} metalness={0.9} />
             </mesh>
 
-            {/* 4 Blades: Blade_01, Blade_02, Blade_03, Blade_04 */}
             {[
               { name: "Blade_01", angle: 0 },
               { name: "Blade_02", angle: Math.PI / 2 },
@@ -278,22 +347,18 @@ export function HeroFanModel({
               { name: "Blade_04", angle: (Math.PI * 3) / 2 },
             ].map((b) => (
               <group key={b.name} name={b.name} rotation={[0, 0, b.angle]}>
-                <mesh position={[0.58, 0, 0.005]}>
+                <mesh position={[0.58, 0, 0.005]} material={proceduralMaterials.bladeBody}>
                   <boxGeometry args={[0.98, 0.072, 0.012]} />
-                  <meshStandardMaterial color="#1E222B" roughness={0.4} metalness={0.5} />
                 </mesh>
-                <mesh position={[0.58, 0.038, 0.003]}>
+                <mesh position={[0.58, 0.038, 0.003]} material={proceduralMaterials.bladeRidge}>
                   <boxGeometry args={[0.96, 0.006, 0.008]} />
-                  <meshStandardMaterial color="#2E3442" roughness={0.3} metalness={0.7} />
                 </mesh>
-                <mesh position={[0.62, 0, 0.014]}>
+                <mesh position={[0.62, 0, 0.014]} material={proceduralMaterials.bladeStrip}>
                   <boxGeometry args={[0.9, 0.014, 0.004]} />
-                  <meshBasicMaterial color="#2BD9E6" />
                 </mesh>
               </group>
             ))}
 
-            {/* Discrete Glowing LED Dots with material named LED */}
             <points geometry={ledPoints}>
               <pointsMaterial
                 ref={proceduralLedMaterialRef}
@@ -307,44 +372,16 @@ export function HeroFanModel({
             </points>
           </group>
         </group>
-      )}
+      ) : null}
 
-      {/* Hologram Video Plane (mode === "how-it-works", fades in past 0.7, rises slightly) */}
-      {showHologramPlane && (
-        <HologramVideoPlane
-          progressRef={progressRef}
-          diameter={0.65}
-          isInView={true}
-          onVideoAvailable={setVideoAvailable}
+      {/* 2. Native 3D Hologram (True Transparency, 3D Rotation & Glowing Loops) */}
+      {showHologram && (
+        <HologramModel
+          styleIndex={hologramStyleIndex}
+          scale={0.24}
+          position={[0, 0, 0.06]}
+          opacityRef={activeOpacityRef}
         />
-      )}
-
-      {/* Procedural Hologram Fallback (active only when video is missing in how-it-works mode) */}
-      {showProceduralHologram && (
-        <group ref={hologramRef} position={[0, 0, motionConfig.hologram.zOffsetInPlane]}>
-          <points geometry={hologramGeometry}>
-            <pointsMaterial
-              size={0.045}
-              color="#2BD9E6"
-              blending={THREE.AdditiveBlending}
-              transparent
-              opacity={0.85}
-              depthWrite={false}
-            />
-          </points>
-
-          <mesh>
-            <octahedronGeometry args={[0.22, 1]} />
-            <meshBasicMaterial
-              wireframe
-              color="#2BD9E6"
-              blending={THREE.AdditiveBlending}
-              transparent
-              opacity={0.75}
-              depthWrite={false}
-            />
-          </mesh>
-        </group>
       )}
     </group>
   );
