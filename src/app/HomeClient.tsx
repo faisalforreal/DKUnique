@@ -9,7 +9,7 @@ import { Footer } from "@/components/layout/Footer";
 import { MobileBottomBar } from "@/components/layout/MobileBottomBar";
 import { HeroSection } from "@/components/home/HeroSection";
 import { HowItWorksSection } from "@/components/home/HowItWorksSection";
-import { SizesSection } from "@/components/home/SizesSection";
+import { HologramStudioSection } from "@/components/home/HologramStudioSection";
 import { CategoriesIndex } from "@/components/home/CategoriesIndex";
 import { PopularFansTable } from "@/components/home/PopularFansTable";
 import { DemoVideosSection } from "@/components/home/DemoVideosSection";
@@ -21,13 +21,12 @@ import { QuoteModal } from "@/components/forms/QuoteModal";
 interface HomeClientProps {
   categories: Category[];
   popularFans: Product[];
-  fanSizes: FanSizeEntry[];
+  fanSizes?: FanSizeEntry[];
 }
 
 export function HomeClient({
   categories,
   popularFans,
-  fanSizes,
 }: HomeClientProps) {
   // Quote Modal State
   const [quoteModalOpen, setQuoteModalOpen] = useState(false);
@@ -51,10 +50,9 @@ export function HomeClient({
           {/* How It Works Scroll Storytelling */}
           <HowItWorksSection />
 
-          {/* Sizes Scale Sequence */}
-          <SizesSection
-            models={fanSizes}
-            onSelectModelQuote={(name) => handleOpenQuote(name)}
+          {/* Interactive 3D Hologram Studio */}
+          <HologramStudioSection
+            onSelectStyleQuote={(name) => handleOpenQuote(`3D Hologram (${name})`)}
           />
 
           {/* 01 What We Supply */}

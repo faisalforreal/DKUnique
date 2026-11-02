@@ -7,6 +7,7 @@ import { motionConfig } from "@/config/motion";
 
 interface HologramVideoPlaneProps {
   progressRef?: React.MutableRefObject<number>;
+  opacityRef?: React.MutableRefObject<number>;
   diameter?: number; // Fan blade diameter in meters (default 0.65)
   isInView?: boolean;
   onVideoAvailable?: (available: boolean) => void;
@@ -25,6 +26,7 @@ interface HologramVideoPlaneProps {
  */
 export function HologramVideoPlane({
   progressRef,
+  opacityRef,
   diameter = 0.65,
   isInView = true,
   onVideoAvailable,
@@ -110,12 +112,15 @@ export function HologramVideoPlane({
     }
   }, [isInView, hasVideo]);
 
-  // Frame loop: update opacity and rise distance based on scroll progress
+  // Frame loop: update opacity and rise distance based on scroll progress or hero opacity ref
   useFrame(() => {
     let opacity = 0;
     let t = 0;
 
-    if (progressRef) {
+    if (opacityRef !== undefined) {
+      opacity = opacityRef.current;
+      t = opacity;
+    } else if (progressRef) {
       const p = Math.max(0, Math.min(1, progressRef.current));
       const { fadeStartProgress } = motionConfig.hologram;
 
@@ -152,6 +157,7 @@ export function HologramVideoPlane({
         transparent
         blending={THREE.AdditiveBlending}
         depthWrite={false}
+        toneMapped={false}
         opacity={0}
       />
     </mesh>
