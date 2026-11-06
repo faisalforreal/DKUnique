@@ -39,6 +39,9 @@ export interface MotionConfig {
       maxSpinSpeed: number; // Full rotation speed in rad/sec (tweak this value)
       fanMinOpacity: number; // Fan visibility at full speed (0.05 = 5% visibility)
       fanMaxOpacity: number; // Fan visibility when still (1.0 = 100% visibility)
+      hologramOnsetThreshold: number; // Progress ratio where hologram onset begins (e.g. 0.60)
+      hologramInitialOpacity: number; // Initial visibility at onset (0.05 = 5% visibility)
+      hologramRampDuration: number; // Seconds to gradually ramp from 5% to 100%
       hologramMinOpacity: number; // Hologram visibility initially (0.0 = 0% visibility)
       hologramMaxOpacity: number; // Hologram visibility at full speed (1.0 = 100% visibility)
     };
@@ -89,8 +92,8 @@ export interface MotionConfig {
 export const motionConfig: MotionConfig = {
   models: {
     hero: {
-      fanScale: 1.25, // Tweak overall hero fan assembly size
-      hologramScale: 0.24, // Tweak hero 3D hologram size
+      fanScale: 1.5, // Tweak overall hero fan assembly size
+      hologramScale: 0.15, // Tweak hero 3D hologram size
     },
     howItWorks: {
       fanScale: 1.05, // Tweak how-it-works fan size
@@ -108,11 +111,14 @@ export const motionConfig: MotionConfig = {
     lerpFactor: 0.08,
     // Startup sequence when website loads
     startup: {
-      stillDuration: 2.0, // Stays still for 2 seconds (tweak this value)
+      stillDuration: 1.0, // Stays still for 1 seconds (tweak this value)
       spinUpDuration: 3.0, // Starts slow and smoothly accelerates to full speed
       maxSpinSpeed: 18.0, // High rotation speed at full velocity
       fanMinOpacity: 0.05, // Opacity drops to 5% as it reaches full speed (tweak this value)
       fanMaxOpacity: 1.0, // Initial 100% solid opacity
+      hologramOnsetThreshold: 0.60, // Speed ratio where hologram onset begins (tweak this value)
+      hologramInitialOpacity: 0.05, // Initial visibility at onset (5% visibility, tweak this value)
+      hologramRampDuration: 2.2, // Seconds to gradually ramp from 5% to 100% (tweak this value)
       hologramMinOpacity: 0.0, // Hologram begins at 0%
       hologramMaxOpacity: 1.0, // Hologram rises gradually to 100%
     },
@@ -141,7 +147,7 @@ export const motionConfig: MotionConfig = {
       finalSpin: 16.0,
     },
     ledVisibility: {
-      dotOpacityMin: 0.1,
+      dotOpacityMin: 0.01,
       dotOpacityMax: 1.0,
       emissiveMin: 0.5,
       emissiveMax: 3.5,
@@ -150,7 +156,7 @@ export const motionConfig: MotionConfig = {
       min: 0.0,
       max: 1.0,
     },
-    mobileScrollLengthMultiplier: 0.7,
+    mobileScrollLengthMultiplier: 10.0,
   },
   hologram: {
     videoSrcMp4: "/assets/demo/holo-loop.mp4",

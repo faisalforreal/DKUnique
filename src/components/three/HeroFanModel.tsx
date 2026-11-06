@@ -211,44 +211,54 @@ export function HeroFanModel({
       timeElapsedRef.current += delta;
       const t = timeElapsedRef.current;
 
-      const stillDuration = motionConfig.hero.startup.stillDuration;
-      const spinUpDuration = motionConfig.hero.startup.spinUpDuration;
-      const maxSpinSpeed = motionConfig.hero.startup.maxSpinSpeed;
-      const fanMinOpacity = motionConfig.hero.startup.fanMinOpacity;
-      const fanMaxOpacity = motionConfig.hero.startup.fanMaxOpacity;
-      const hologramMaxOpacity = motionConfig.hero.startup.hologramMaxOpacity;
+      const {
+        stillDuration,
+        spinUpDuration,
+        maxSpinSpeed,
+        fanMinOpacity,
+        fanMaxOpacity,
+        hologramOnsetThreshold,
+        hologramInitialOpacity,
+        hologramRampDuration,
+        hologramMaxOpacity,
+      } = motionConfig.hero.startup;
 
+      // 1. Mechanical Fan Spin Acceleration
       if (t < stillDuration) {
-        // 1. Initial still state: fan visible, still, hologram hidden
         currentSpinSpeed = 0;
-        currentFanOpacity = fanMaxOpacity;
-        currentHoloOpacity = 0;
         currentLedIntensity = 0.5;
       } else if (t < stillDuration + spinUpDuration) {
-        // 2. Spin-up phase: Starts slow and accelerates to full speed
         const progress = Math.min(1, Math.max(0, (t - stillDuration) / spinUpDuration));
         // Smoothstep curve for natural mechanical acceleration
         const ease = progress * progress * (3 - 2 * progress);
         currentSpinSpeed = THREE.MathUtils.lerp(0, maxSpinSpeed, ease);
         currentLedIntensity = THREE.MathUtils.lerp(0.5, motionConfig.howItWorks.ledVisibility.emissiveMax, ease);
-
-        // Delayed onset: Hologram stays strictly 0.0 until fan is already spinning fast (progress >= 0.68)
-        const onsetThreshold = 0.68;
-        if (progress < onsetThreshold) {
-          currentHoloOpacity = 0.0;
-          currentFanOpacity = THREE.MathUtils.lerp(fanMaxOpacity, 0.75, progress / onsetThreshold);
-        } else {
-          const holoProg = (progress - onsetThreshold) / (1.0 - onsetThreshold);
-          const holoEase = holoProg * holoProg * (3 - 2 * holoProg);
-          currentHoloOpacity = THREE.MathUtils.lerp(0.0, hologramMaxOpacity, holoEase);
-          currentFanOpacity = THREE.MathUtils.lerp(0.75, fanMinOpacity, holoEase);
-        }
       } else {
-        // 3. Steady state at full speed: 5% fan opacity, 100% hologram visibility
         currentSpinSpeed = maxSpinSpeed;
-        currentFanOpacity = fanMinOpacity;
-        currentHoloOpacity = hologramMaxOpacity;
         currentLedIntensity = motionConfig.howItWorks.ledVisibility.emissiveMax;
+      }
+
+      // 2. Optical Hologram Onset & Gradual Materialization
+      const tOnset = stillDuration + spinUpDuration * hologramOnsetThreshold;
+
+      if (t < tOnset) {
+        // Before onset: fan accelerates, hologram is strictly 0%
+        currentHoloOpacity = 0.0;
+        const preOnsetRatio =
+          t < stillDuration
+            ? 0
+            : Math.min(1, Math.max(0, (t - stillDuration) / (tOnset - stillDuration)));
+        currentFanOpacity = THREE.MathUtils.lerp(fanMaxOpacity, 0.7, preOnsetRatio);
+      } else {
+        // Onset and gradual ramp: begins at 5% visibility and smoothly eases to 100%
+        const rampProgress = Math.min(1, Math.max(0, (t - tOnset) / hologramRampDuration));
+        const rampEase = rampProgress * rampProgress * (3 - 2 * rampProgress);
+        currentHoloOpacity = THREE.MathUtils.lerp(
+          hologramInitialOpacity,
+          hologramMaxOpacity,
+          rampEase
+        );
+        currentFanOpacity = THREE.MathUtils.lerp(0.7, fanMinOpacity, rampEase);
       }
 
       heroHoloOpacityRef.current = currentHoloOpacity;
