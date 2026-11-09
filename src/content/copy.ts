@@ -214,6 +214,44 @@ export const copy = {
     sendWhatsApp: "Send these details on WhatsApp",
     error: "Something went wrong. Please call or WhatsApp us on {phone}.",
   },
+  showroom: {
+    hero: {
+      label: "3D Holographic Fans & Displays",
+      heading: "Holographic displays for shops, malls and events",
+      body: "Spinning LED fans that show floating images and video. Sizes from 14 cm to 100 cm, plus hologram boxes, logo projectors and LED projectors from Okhla, New Delhi.",
+      cta: "Get a quote",
+      scrollHint: "Scroll to explore",
+    },
+    beats: [
+      {
+        label: "01 / Capture Attention",
+        heading: "Make them stop. Make them look.",
+        body: "Bring motion, depth and a little wonder to retail spaces, launches and events.",
+      },
+      {
+        label: "02 / Brand Identity",
+        heading: "Put your brand in the spotlight.",
+        body: "Turn your identity into a striking visual signature that people notice and remember.",
+      },
+      {
+        label: "03 / Product Showcase",
+        heading: "Give every product its moment.",
+        body: "From fashion to fragrance, turn product presentations into something worth watching.",
+      },
+      {
+        label: "04 / The Possibilities",
+        heading: "One display. Endless ways to impress.",
+        body: "Discover the different visuals and experiences you can bring to life with holographic technology.",
+        cta: "Explore Our Display Solutions",
+      },
+    ] as { label: string; heading: string; body: string; cta?: string }[],
+    showcase: {
+      label: "Holographic Content",
+      heading: "One display. Endless ways to impress.",
+      body: "A few of the visuals and experiences you can bring to life with holographic technology.",
+      cta: "Explore Our Display Solutions",
+    },
+  },
   notFound: {
     heading: "404",
     body: "This page does not exist.",

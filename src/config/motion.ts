@@ -87,6 +87,49 @@ export interface MotionConfig {
     scrollRotationFactor: number;
     autoRotateSpeed: number;
   };
+  showroom: ShowroomConfig;
+}
+
+export interface ShowroomCameraKeyframe {
+  p: number; // progress 0..1
+  position: [number, number, number];
+  target: [number, number, number];
+  fov: number;
+}
+
+export interface ShowroomConfig {
+  trackHeightVh: number; // desktop pinned track height in viewport heights
+  trackHeightMobileVh: number; // mobile pinned track height
+  segments: {
+    hero: { start: number; end: number };
+    fanToButterfly: { start: number; end: number };
+    butterfly: { start: number; end: number };
+    butterflyToEmblem: { start: number; end: number };
+    emblem: { start: number; end: number };
+    emblemToSneaker: { start: number; end: number };
+    sneaker: { start: number; end: number };
+    sneakerToShowcase: { start: number; end: number };
+    showcase: { start: number; end: number };
+  };
+  camera: {
+    keyframes: ShowroomCameraKeyframe[];
+  };
+  lights: {
+    ambient: { intensity: number };
+    key: { position: [number, number, number]; color: string; intensity: number };
+    rim: { position: [number, number, number]; color: string; intensity: number };
+    fill: { position: [number, number, number]; color: string; intensity: number };
+  };
+  particles: {
+    maxCount: number;
+    size: number;
+  };
+  idle: {
+    butterflyFlapTimeScale: number;
+    butterflyFloatAmplitude: number;
+    fanSpinSpeed: number;
+    showcaseLoopSpeed: number;
+  };
 }
 
 export const motionConfig: MotionConfig = {
@@ -172,5 +215,49 @@ export const motionConfig: MotionConfig = {
   productDetail: {
     scrollRotationFactor: 0.005,
     autoRotateSpeed: 1.5,
+  },
+  showroom: {
+    trackHeightVh: 600,
+    trackHeightMobileVh: 480,
+    segments: {
+      hero: { start: 0.0, end: 0.12 },
+      fanToButterfly: { start: 0.12, end: 0.26 },
+      butterfly: { start: 0.26, end: 0.4 },
+      butterflyToEmblem: { start: 0.4, end: 0.54 },
+      emblem: { start: 0.54, end: 0.66 },
+      emblemToSneaker: { start: 0.66, end: 0.78 },
+      sneaker: { start: 0.78, end: 0.86 },
+      sneakerToShowcase: { start: 0.86, end: 0.94 },
+      showcase: { start: 0.94, end: 1.0 },
+    },
+    camera: {
+      keyframes: [
+        { p: 0.0, position: [0, 0, 2.6], target: [0, 0, 0], fov: 45 },
+        { p: 0.12, position: [0, 0, 2.6], target: [0, 0, 0], fov: 45 },
+        { p: 0.26, position: [0, 0, 2.8], target: [0, 0, 0], fov: 45 },
+        { p: 0.4, position: [0.35, 0.05, 2.8], target: [-0.2, 0, 0], fov: 45 },
+        { p: 0.54, position: [-0.35, 0.05, 2.8], target: [0.2, 0, 0], fov: 45 },
+        { p: 0.66, position: [-0.35, 0.05, 2.8], target: [0.2, 0, 0], fov: 45 },
+        { p: 0.78, position: [0.35, 0.05, 2.8], target: [-0.2, 0, 0], fov: 45 },
+        { p: 0.86, position: [0, 0, 3.2], target: [0, 0, 0], fov: 42 },
+        { p: 1.0, position: [0, 0, 3.6], target: [0, 0, 0], fov: 40 },
+      ],
+    },
+    lights: {
+      ambient: { intensity: 0.7 },
+      key: { position: [3, 4, 5], color: "#D5B77B", intensity: 1.6 },
+      rim: { position: [-3, 1, -2], color: "#C58D9D", intensity: 0.9 },
+      fill: { position: [0, -2, 3], color: "#F2EEE7", intensity: 0.4 },
+    },
+    particles: {
+      maxCount: 1200,
+      size: 0.035,
+    },
+    idle: {
+      butterflyFlapTimeScale: 0.6,
+      butterflyFloatAmplitude: 0.08,
+      fanSpinSpeed: 14,
+      showcaseLoopSpeed: 0.35,
+    },
   },
 };

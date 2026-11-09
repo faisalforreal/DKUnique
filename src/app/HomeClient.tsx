@@ -7,9 +7,8 @@ import { CanvasManager } from "@/components/three/CanvasManager";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { MobileBottomBar } from "@/components/layout/MobileBottomBar";
-import { HeroSection } from "@/components/home/HeroSection";
-import { HowItWorksSection } from "@/components/home/HowItWorksSection";
-import { HologramStudioSection } from "@/components/home/HologramStudioSection";
+import { ShowroomExperience } from "@/components/home/ShowroomExperience";
+import { HolographicShowcaseSection } from "@/components/home/HolographicShowcaseSection";
 import { CategoriesIndex } from "@/components/home/CategoriesIndex";
 import { PopularFansTable } from "@/components/home/PopularFansTable";
 import { DemoVideosSection } from "@/components/home/DemoVideosSection";
@@ -44,16 +43,11 @@ export function HomeClient({
         <Navbar onOpenQuoteModal={() => handleOpenQuote()} />
 
         <main className="flex-1">
-          {/* Hero Section */}
-          <HeroSection onOpenQuoteModal={() => handleOpenQuote()} />
+          {/* Scroll-driven 3D holographic showroom */}
+          <ShowroomExperience onOpenQuoteModal={() => handleOpenQuote()} />
 
-          {/* How It Works Scroll Storytelling */}
-          <HowItWorksSection />
-
-          {/* Interactive 3D Hologram Studio */}
-          <HologramStudioSection
-            onSelectStyleQuote={(name) => handleOpenQuote(`3D Hologram (${name})`)}
-          />
+          {/* Holographic content gallery */}
+          <HolographicShowcaseSection />
 
           {/* 01 What We Supply */}
           <CategoriesIndex categories={categories} />

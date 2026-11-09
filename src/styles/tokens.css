@@ -6,6 +6,13 @@
   --color-stage: #0A0C10;
   --color-signal: #2BD9E6;
 
+  /* Midnight Luxury palette (immersive 3D showroom) */
+  --color-midnight: #0B0C13;
+  --color-plum: #281A30;
+  --color-champagne: #D5B77B;
+  --color-rose: #C58D9D;
+  --color-pearl: #F2EEE7;
+
   --font-display: var(--font-archivo), sans-serif;
   --font-body: var(--font-public-sans), sans-serif;
   --font-mono: var(--font-ibm-plex-mono), monospace;
