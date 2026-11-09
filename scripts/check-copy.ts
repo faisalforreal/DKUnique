@@ -78,6 +78,7 @@ const EXCLUDED_FILES = [
   path.normalize("src/components/three/HologramStudioView.tsx"),
   path.normalize("src/components/three/HologramVideoPlane.tsx"),
   path.normalize("src/components/three/ProductViewer.tsx"),
+  path.normalize("src/components/three/showroom/HeroShowroomAssembly.tsx"),
   path.normalize("src/components/three/showroom/assets.ts"),
   path.normalize("src/components/three/showroom/useShowroomAssets.ts"),
   path.normalize("src/components/three/showroom/StoryObject.tsx"),

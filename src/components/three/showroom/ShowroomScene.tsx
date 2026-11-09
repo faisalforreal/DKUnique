@@ -3,9 +3,10 @@
 import { motionConfig } from "@/config/motion";
 import { ShowroomCamera } from "./ShowroomCamera";
 import { ShowroomLights } from "./ShowroomLights";
+import { HeroShowroomAssembly } from "./HeroShowroomAssembly";
 import { StoryObject } from "./StoryObject";
 import { LuminousPoint, LightSweep } from "./TransitionFX";
-import { fanTransform, butterflyTransform, emblemTransform, sneakerTransform } from "./timeline";
+import { butterflyTransform, emblemTransform, sneakerTransform } from "./timeline";
 
 interface ShowroomSceneProps {
   progressRef: React.MutableRefObject<number>;
@@ -45,7 +46,7 @@ export function ShowroomScene({ progressRef }: ShowroomSceneProps) {
         color="#C58D9D"
       />
 
-      <StoryObject id="fan" progressRef={progressRef} transform={fanTransform} />
+      <HeroShowroomAssembly progressRef={progressRef} />
       <StoryObject id="butterfly" progressRef={progressRef} transform={butterflyTransform} />
       <StoryObject id="emblem" progressRef={progressRef} transform={emblemTransform} />
       <StoryObject id="sneaker" progressRef={progressRef} transform={sneakerTransform} />

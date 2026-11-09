@@ -157,9 +157,9 @@ export const motionConfig: MotionConfig = {
       stillDuration: 1.0, // Stays still for 1 seconds (tweak this value)
       spinUpDuration: 3.0, // Starts slow and smoothly accelerates to full speed
       maxSpinSpeed: 18.0, // High rotation speed at full velocity
-      fanMinOpacity: 0.05, // Opacity drops to 5% as it reaches full speed (tweak this value)
+      fanMinOpacity: 0.05, // Opacity drops to 5% as it reaches full speed (95% transparent)
       fanMaxOpacity: 1.0, // Initial 100% solid opacity
-      hologramOnsetThreshold: 0.60, // Speed ratio where hologram onset begins (tweak this value)
+      hologramOnsetThreshold: 0.55, // Fan transparency/progress ratio where hologram onset begins
       hologramInitialOpacity: 0.05, // Initial visibility at onset (5% visibility, tweak this value)
       hologramRampDuration: 2.2, // Seconds to gradually ramp from 5% to 100% (tweak this value)
       hologramMinOpacity: 0.0, // Hologram begins at 0%
