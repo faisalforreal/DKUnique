@@ -57,7 +57,15 @@ function ShowcaseItem({ id, angle }: { id: string; angle: number }) {
   const seed = useRef(Math.random() * Math.PI * 2);
 
   useFrame((state, delta) => {
-    instance?.mixer?.update(delta);
+    const cfg =
+      id === "butterfly"
+        ? motionConfig.showroom.models.butterfly
+        : (motionConfig.showroom.models[id] ?? motionConfig.showroom.models.default);
+
+    const flapMultiplier =
+      cfg?.flapSpeed ??
+      (id === "butterfly" ? motionConfig.showroom.idle.butterflyFlapTimeScale : 1.0);
+    instance?.mixer?.update(delta * flapMultiplier);
 
     const g = groupRef.current;
     if (!g) return;
@@ -70,7 +78,8 @@ function ShowcaseItem({ id, angle }: { id: string; angle: number }) {
     const bob = Math.sin(state.clock.elapsedTime * 0.7 + seed.current) * 0.06;
     g.position.set(x, bob, z);
     g.rotation.y = angle; // face outward from the ring centre
-    g.scale.setScalar((asset?.baseScale ?? 1) * 0.85);
+    const baseScale = cfg?.scale ?? asset?.baseScale ?? 1;
+    g.scale.setScalar(baseScale * 0.85);
   });
 
   return (

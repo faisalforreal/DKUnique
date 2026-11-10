@@ -35,7 +35,15 @@ export function StoryObject({ id, progressRef, transform }: StoryObjectProps) {
   }, [id, instance]);
 
   useFrame((state, delta) => {
-    instance?.mixer?.update(delta);
+    const cfg =
+      id === "butterfly"
+        ? motionConfig.showroom.models.butterfly
+        : (motionConfig.showroom.models[id] ?? motionConfig.showroom.models.default);
+
+    const flapMultiplier =
+      cfg?.flapSpeed ??
+      (id === "butterfly" ? motionConfig.showroom.idle.butterflyFlapTimeScale : 1.0);
+    instance?.mixer?.update(delta * flapMultiplier);
 
     const t = transform(progressRef.current);
     const g = groupRef.current;
@@ -46,11 +54,6 @@ export function StoryObject({ id, progressRef, transform }: StoryObjectProps) {
     if (!show) return;
 
     opacityRef.current = t.opacity;
-
-    const cfg =
-      id === "butterfly"
-        ? motionConfig.showroom.models.butterfly
-        : (motionConfig.showroom.models[id] ?? motionConfig.showroom.models.default);
 
     const baseScale = cfg?.scale ?? asset?.baseScale ?? 1;
     const scale = baseScale * t.scale;

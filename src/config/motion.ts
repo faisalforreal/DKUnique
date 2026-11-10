@@ -99,6 +99,7 @@ export interface ShowroomCameraKeyframe {
 
 export interface ShowroomModelMotion {
   scale?: number; // Overall model scale multiplier (e.g. 0.85, 1.2)
+  flapSpeed?: number; // Animation / wing flapping speed multiplier (1.0 = normal, 0.6 = slower, 1.5 = faster)
   autoRotate: boolean;
   baseRotation?: [number, number, number];
   rotationSpeed?: number;
@@ -294,7 +295,8 @@ export const motionConfig: MotionConfig = {
         floatSpeed: 0.6,
       },
       butterfly: {
-        scale: 0.85,
+        scale: 1,
+        flapSpeed: 0.8, // Butterfly wing flap speed (1.0 = normal, 0.5 = slow motion, 2.0 = fast)
         autoRotate: false,
         baseRotation: [0, Math.PI * 0.25, 0],
         rotationYDegrees: 90,
