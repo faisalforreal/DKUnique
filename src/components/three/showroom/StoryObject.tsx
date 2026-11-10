@@ -46,7 +46,14 @@ export function StoryObject({ id, progressRef, transform }: StoryObjectProps) {
     if (!show) return;
 
     opacityRef.current = t.opacity;
-    const scale = (asset?.baseScale ?? 1) * t.scale;
+
+    const cfg =
+      id === "butterfly"
+        ? motionConfig.showroom.models.butterfly
+        : (motionConfig.showroom.models[id] ?? motionConfig.showroom.models.default);
+
+    const baseScale = cfg?.scale ?? asset?.baseScale ?? 1;
+    const scale = baseScale * t.scale;
 
     if (id === "fan") {
       // 1. Physical fan: fixed front-facing orientation, spinning rotor hub.
@@ -58,7 +65,6 @@ export function StoryObject({ id, progressRef, transform }: StoryObjectProps) {
       }
     } else if (id === "butterfly") {
       // 2. Butterfly: zero continuous rotation (does not spin), wings flap via mixer as it slides across.
-      const cfg = motionConfig.showroom.models.butterfly;
       const bob = Math.sin(state.clock.elapsedTime * cfg.floatSpeed + seed.current) * cfg.floatAmplitude;
       g.position.set(t.position[0], t.position[1] + bob, t.position[2]);
       g.scale.setScalar(scale);
@@ -73,8 +79,6 @@ export function StoryObject({ id, progressRef, transform }: StoryObjectProps) {
     } else {
       // 3. Showcase models (Emblem, Sneaker, etc.): non-linear 90° dwell rotation.
       // Slows down noticeably when displaying the front/cardinal face, accelerates through intermediate turns.
-      const cfg = motionConfig.showroom.models[id] ?? motionConfig.showroom.models.default;
-
       const bob = Math.sin(state.clock.elapsedTime * cfg.floatSpeed + seed.current) * cfg.floatAmplitude;
       g.position.set(t.position[0], t.position[1] + bob, t.position[2]);
       g.scale.setScalar(scale);

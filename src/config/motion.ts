@@ -98,6 +98,7 @@ export interface ShowroomCameraKeyframe {
 }
 
 export interface ShowroomModelMotion {
+  scale?: number; // Overall model scale multiplier (e.g. 0.85, 1.2)
   autoRotate: boolean;
   baseRotation?: [number, number, number];
   rotationSpeed?: number;
@@ -283,6 +284,7 @@ export const motionConfig: MotionConfig = {
     },
     models: {
       default: {
+        scale: 1.0,
         autoRotate: true,
         rotationSpeed: 0.35,
         dwellFactor: 0.7,
@@ -292,13 +294,15 @@ export const motionConfig: MotionConfig = {
         floatSpeed: 0.6,
       },
       butterfly: {
+        scale: 0.85,
         autoRotate: false,
         baseRotation: [0, Math.PI * 0.25, 0],
-        rotationYDegrees: 45,
+        rotationYDegrees: 90,
         floatAmplitude: 0.04,
         floatSpeed: 0.8,
       },
       emblem: {
+        scale: 0.9,
         autoRotate: true,
         rotationSpeed: 0.5,
         dwellFactor: 0.9,
@@ -309,6 +313,7 @@ export const motionConfig: MotionConfig = {
         floatSpeed: 0.6,
       },
       sneaker: {
+        scale: 0.8,
         autoRotate: true,
         rotationSpeed: 0.35,
         dwellFactor: 0.65,
