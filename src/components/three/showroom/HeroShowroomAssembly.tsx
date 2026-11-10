@@ -226,7 +226,10 @@ export function HeroShowroomAssembly({ progressRef }: HeroShowroomAssemblyProps)
     if (heroCfg.autoRotate) {
       const dwell = heroCfg.dwellFactor ?? 0.75;
       const freq = heroCfg.dwellFrequency ?? 4;
-      const phase = heroCfg.phaseOffset ?? 0;
+      const phase =
+        heroCfg.dwellAngleDegrees !== undefined
+          ? (heroCfg.dwellAngleDegrees * Math.PI) / 180
+          : (heroCfg.phaseOffset ?? 0);
       const baseSpeed = heroCfg.rotationSpeed ?? 0.3;
       const speedMult = 1 - dwell * Math.cos(freq * (heroAngleRef.current - phase));
       heroAngleRef.current += baseSpeed * speedMult * delta;

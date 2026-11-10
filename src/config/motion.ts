@@ -104,6 +104,7 @@ export interface ShowroomModelMotion {
   dwellFactor?: number; // 0..0.9 (e.g. 0.75 means drops to 25% speed at dwell angles)
   dwellFrequency?: number; // 4 for 90-degree intervals
   phaseOffset?: number; // radians offset
+  dwellAngleDegrees?: number; // Angle in degrees where it slows down (e.g. 0, 45, 90)
   floatAmplitude: number;
   floatSpeed: number;
 }
@@ -255,7 +256,7 @@ export const motionConfig: MotionConfig = {
         { p: 0.0, position: [0, 0, 2.6], target: [0, 0, 0], fov: 45 },
         { p: 0.12, position: [0, 0, 2.6], target: [0, 0, 0], fov: 45 },
         { p: 0.26, position: [0, 0, 2.8], target: [0, 0, 0], fov: 45 },
-        { p: 0.4, position: [0.35, 0.05, 2.8], target: [-0.2, 0, 0], fov: 45 },
+        { p: 0.4, position: [0, 0, 2.8], target: [0, 0, 0], fov: 45 },
         { p: 0.54, position: [-0.35, 0.05, 2.8], target: [0.2, 0, 0], fov: 45 },
         { p: 0.66, position: [-0.35, 0.05, 2.8], target: [0.2, 0, 0], fov: 45 },
         { p: 0.78, position: [0.35, 0.05, 2.8], target: [-0.2, 0, 0], fov: 45 },
@@ -291,7 +292,7 @@ export const motionConfig: MotionConfig = {
       },
       butterfly: {
         autoRotate: false,
-        baseRotation: [0, 0.15, 0],
+        baseRotation: [0, 0, 0],
         floatAmplitude: 0.04,
         floatSpeed: 0.8,
       },
@@ -301,6 +302,7 @@ export const motionConfig: MotionConfig = {
         dwellFactor: 0.75,
         dwellFrequency: 4,
         phaseOffset: 0,
+        dwellAngleDegrees: 0,
         floatAmplitude: 0.03,
         floatSpeed: 0.6,
       },

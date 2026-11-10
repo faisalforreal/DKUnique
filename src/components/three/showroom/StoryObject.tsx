@@ -76,7 +76,10 @@ export function StoryObject({ id, progressRef, transform }: StoryObjectProps) {
       if (cfg.autoRotate) {
         const dwell = cfg.dwellFactor ?? 0.75;
         const freq = cfg.dwellFrequency ?? 4;
-        const phase = cfg.phaseOffset ?? 0;
+        const phase =
+          cfg.dwellAngleDegrees !== undefined
+            ? (cfg.dwellAngleDegrees * Math.PI) / 180
+            : (cfg.phaseOffset ?? 0);
         const baseSpeed = cfg.rotationSpeed ?? 0.4;
         const speedMult = 1 - dwell * Math.cos(freq * (angleRef.current - phase));
         angleRef.current += baseSpeed * speedMult * delta;
