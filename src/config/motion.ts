@@ -105,6 +105,7 @@ export interface ShowroomModelMotion {
   dwellFrequency?: number; // 4 for 90-degree intervals
   phaseOffset?: number; // radians offset
   dwellAngleDegrees?: number; // Angle in degrees where it slows down (e.g. 0, 45, 90)
+  rotationYDegrees?: number; // Static Y rotation in degrees (e.g. 45 for butterfly)
   floatAmplitude: number;
   floatSpeed: number;
 }
@@ -292,7 +293,8 @@ export const motionConfig: MotionConfig = {
       },
       butterfly: {
         autoRotate: false,
-        baseRotation: [0, 0, 0],
+        baseRotation: [0, Math.PI * 0.25, 0],
+        rotationYDegrees: 45,
         floatAmplitude: 0.04,
         floatSpeed: 0.8,
       },

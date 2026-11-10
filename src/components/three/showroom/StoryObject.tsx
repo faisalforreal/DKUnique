@@ -63,8 +63,13 @@ export function StoryObject({ id, progressRef, transform }: StoryObjectProps) {
       g.position.set(t.position[0], t.position[1] + bob, t.position[2]);
       g.scale.setScalar(scale);
 
-      const rot = cfg.baseRotation ?? [0, 0, 0];
-      g.rotation.set(rot[0], rot[1], rot[2]);
+      const rotY =
+        cfg.rotationYDegrees !== undefined
+          ? (cfg.rotationYDegrees * Math.PI) / 180
+          : (cfg.baseRotation?.[1] ?? Math.PI * 0.25);
+      const rotX = cfg.baseRotation?.[0] ?? 0;
+      const rotZ = cfg.baseRotation?.[2] ?? 0;
+      g.rotation.set(rotX, rotY, rotZ);
     } else {
       // 3. Showcase models (Emblem, Sneaker, etc.): non-linear 90° dwell rotation.
       // Slows down noticeably when displaying the front/cardinal face, accelerates through intermediate turns.
