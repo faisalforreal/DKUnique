@@ -97,6 +97,17 @@ export interface ShowroomCameraKeyframe {
   fov: number;
 }
 
+export interface ShowroomModelMotion {
+  autoRotate: boolean;
+  baseRotation?: [number, number, number];
+  rotationSpeed?: number;
+  dwellFactor?: number; // 0..0.9 (e.g. 0.75 means drops to 25% speed at dwell angles)
+  dwellFrequency?: number; // 4 for 90-degree intervals
+  phaseOffset?: number; // radians offset
+  floatAmplitude: number;
+  floatSpeed: number;
+}
+
 export interface ShowroomConfig {
   trackHeightVh: number; // desktop pinned track height in viewport heights
   trackHeightMobileVh: number; // mobile pinned track height
@@ -130,13 +141,22 @@ export interface ShowroomConfig {
     fanSpinSpeed: number;
     showcaseLoopSpeed: number;
   };
+  models: {
+    /** Default motion profile applied to any showroom model without a dedicated override */
+    default: ShowroomModelMotion;
+    butterfly: ShowroomModelMotion;
+    emblem: ShowroomModelMotion;
+    sneaker: ShowroomModelMotion;
+    heroHologram: ShowroomModelMotion;
+    [key: string]: ShowroomModelMotion;
+  };
 }
 
 export const motionConfig: MotionConfig = {
   models: {
     hero: {
-      fanScale: 1.5, // Tweak overall hero fan assembly size
-      hologramScale: 0.15, // Tweak hero 3D hologram size
+      fanScale: 3, // Tweak overall hero fan assembly size
+      hologramScale: 0.3, // Tweak hero 3D hologram size
     },
     howItWorks: {
       fanScale: 1.05, // Tweak how-it-works fan size
@@ -258,6 +278,50 @@ export const motionConfig: MotionConfig = {
       butterflyFloatAmplitude: 0.08,
       fanSpinSpeed: 14,
       showcaseLoopSpeed: 0.35,
+    },
+    models: {
+      default: {
+        autoRotate: true,
+        rotationSpeed: 0.35,
+        dwellFactor: 0.7,
+        dwellFrequency: 4,
+        phaseOffset: 0,
+        floatAmplitude: 0.03,
+        floatSpeed: 0.6,
+      },
+      butterfly: {
+        autoRotate: false,
+        baseRotation: [0, 0.15, 0],
+        floatAmplitude: 0.04,
+        floatSpeed: 0.8,
+      },
+      emblem: {
+        autoRotate: true,
+        rotationSpeed: 0.4,
+        dwellFactor: 0.75,
+        dwellFrequency: 4,
+        phaseOffset: 0,
+        floatAmplitude: 0.03,
+        floatSpeed: 0.6,
+      },
+      sneaker: {
+        autoRotate: true,
+        rotationSpeed: 0.35,
+        dwellFactor: 0.65,
+        dwellFrequency: 4,
+        phaseOffset: 0,
+        floatAmplitude: 0.03,
+        floatSpeed: 0.5,
+      },
+      heroHologram: {
+        autoRotate: true,
+        rotationSpeed: 0.3,
+        dwellFactor: 0.75,
+        dwellFrequency: 4,
+        phaseOffset: 0,
+        floatAmplitude: 0.02,
+        floatSpeed: 0.7,
+      },
     },
   },
 };

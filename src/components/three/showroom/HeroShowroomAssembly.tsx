@@ -59,6 +59,7 @@ export function HeroShowroomAssembly({ progressRef }: HeroShowroomAssemblyProps)
   const ledMaterialsRef = useRef<THREE.MeshStandardMaterial[]>([]);
   const heroHoloOpacityRef = useRef(0);
   const timeElapsedRef = useRef(0);
+  const heroAngleRef = useRef(0);
 
   // Load and clone hero fan
   useEffect(() => {
@@ -200,11 +201,11 @@ export function HeroShowroomAssembly({ progressRef }: HeroShowroomAssemblyProps)
     }
 
     // B. Hologram Logo scroll transition into next model:
-    // Holds steady at hero spot [1.25, 0, 0] during hero beat (p: 0 -> 0.12).
+    // Holds steady at hero spot [1.0, 0, 0] during hero beat (p: 0 -> 0.12).
     // During fanToButterfly (p: 0.12 -> 0.26), glides smoothly towards [1.6, 0, 0.3],
     // scaling down and fading out into the luminous point where the butterfly emerges.
     const S = motionConfig.showroom.segments;
-    let holoX = 1.25;
+    let holoX = 1.0;
     const holoY = 0;
     let holoZ = 0.28;
     let holoScale = motionConfig.models.hero.hologramScale;
@@ -221,12 +222,25 @@ export function HeroShowroomAssembly({ progressRef }: HeroShowroomAssemblyProps)
 
     heroHoloOpacityRef.current = holoOpacity;
 
+    const heroCfg = motionConfig.showroom.models.heroHologram;
+    if (heroCfg.autoRotate) {
+      const dwell = heroCfg.dwellFactor ?? 0.75;
+      const freq = heroCfg.dwellFrequency ?? 4;
+      const phase = heroCfg.phaseOffset ?? 0;
+      const baseSpeed = heroCfg.rotationSpeed ?? 0.3;
+      const speedMult = 1 - dwell * Math.cos(freq * (heroAngleRef.current - phase));
+      heroAngleRef.current += baseSpeed * speedMult * delta;
+    }
+
     if (holoGroupRef.current) {
       const holoVisible = holoOpacity > 0.005;
       holoGroupRef.current.visible = holoVisible;
       if (holoVisible) {
         holoGroupRef.current.position.set(holoX, holoY, holoZ);
         holoGroupRef.current.scale.setScalar(holoScale);
+        if (heroCfg.autoRotate) {
+          holoGroupRef.current.rotation.y = heroAngleRef.current;
+        }
       }
     }
   });

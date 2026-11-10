@@ -25,6 +25,7 @@ export function StoryObject({ id, progressRef, transform }: StoryObjectProps) {
   const groupRef = useRef<THREE.Group>(null);
   const rotorRef = useRef<THREE.Object3D | null>(null);
   const opacityRef = useRef(0);
+  const angleRef = useRef(0);
   const seed = useRef(Math.random() * Math.PI * 2);
 
   useEffect(() => {
@@ -48,19 +49,42 @@ export function StoryObject({ id, progressRef, transform }: StoryObjectProps) {
     const scale = (asset?.baseScale ?? 1) * t.scale;
 
     if (id === "fan") {
-      // Physical fan: fixed front-facing orientation, spinning rotor.
+      // 1. Physical fan: fixed front-facing orientation, spinning rotor hub.
       g.position.set(t.position[0], t.position[1], t.position[2]);
       g.scale.setScalar(scale);
       g.rotation.set(0, 0, 0);
       if (rotorRef.current) {
         rotorRef.current.rotation.z += motionConfig.showroom.idle.fanSpinSpeed * delta;
       }
-    } else {
-      // Holographic object: gentle float + slow yaw, wings keep flapping via mixer.
-      const bob = Math.sin(state.clock.elapsedTime * 0.8 + seed.current) * 0.05;
+    } else if (id === "butterfly") {
+      // 2. Butterfly: zero continuous rotation (does not spin), wings flap via mixer as it slides across.
+      const cfg = motionConfig.showroom.models.butterfly;
+      const bob = Math.sin(state.clock.elapsedTime * cfg.floatSpeed + seed.current) * cfg.floatAmplitude;
       g.position.set(t.position[0], t.position[1] + bob, t.position[2]);
       g.scale.setScalar(scale);
-      g.rotation.y = state.clock.elapsedTime * 0.3;
+      const rot = cfg.baseRotation ?? [0, 0, 0];
+      g.rotation.set(rot[0], rot[1], rot[2]);
+    } else {
+      // 3. Showcase models (Emblem, Sneaker, etc.): non-linear 90° dwell rotation.
+      // Slows down noticeably when displaying the front/cardinal face, accelerates through intermediate turns.
+      const cfg = motionConfig.showroom.models[id] ?? motionConfig.showroom.models.default;
+
+      const bob = Math.sin(state.clock.elapsedTime * cfg.floatSpeed + seed.current) * cfg.floatAmplitude;
+      g.position.set(t.position[0], t.position[1] + bob, t.position[2]);
+      g.scale.setScalar(scale);
+
+      if (cfg.autoRotate) {
+        const dwell = cfg.dwellFactor ?? 0.75;
+        const freq = cfg.dwellFrequency ?? 4;
+        const phase = cfg.phaseOffset ?? 0;
+        const baseSpeed = cfg.rotationSpeed ?? 0.4;
+        const speedMult = 1 - dwell * Math.cos(freq * (angleRef.current - phase));
+        angleRef.current += baseSpeed * speedMult * delta;
+        g.rotation.set(0, angleRef.current, 0);
+      } else {
+        const rot = cfg.baseRotation ?? [0, 0, 0];
+        g.rotation.set(rot[0], rot[1], rot[2]);
+      }
     }
 
     if (instance) {
