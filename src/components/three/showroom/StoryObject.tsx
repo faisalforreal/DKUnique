@@ -62,6 +62,7 @@ export function StoryObject({ id, progressRef, transform }: StoryObjectProps) {
       const bob = Math.sin(state.clock.elapsedTime * cfg.floatSpeed + seed.current) * cfg.floatAmplitude;
       g.position.set(t.position[0], t.position[1] + bob, t.position[2]);
       g.scale.setScalar(scale);
+
       const rot = cfg.baseRotation ?? [0, 0, 0];
       g.rotation.set(rot[0], rot[1], rot[2]);
     } else {
