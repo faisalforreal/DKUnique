@@ -295,8 +295,8 @@ export const motionConfig: MotionConfig = {
         floatSpeed: 0.6,
       },
       butterfly: {
-        scale: 1,
-        flapSpeed: 0.8, // Butterfly wing flap speed (1.0 = normal, 0.5 = slow motion, 2.0 = fast)
+        scale: 1.5,
+        flapSpeed: 3, // Butterfly wing flap speed (1.0 = normal, 0.5 = slow motion, 2.0 = fast)
         autoRotate: false,
         baseRotation: [0, Math.PI * 0.25, 0],
         rotationYDegrees: 90,
